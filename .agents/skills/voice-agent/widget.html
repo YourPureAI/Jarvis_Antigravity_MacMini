@@ -1,0 +1,233 @@
+<div class="voice-widget p-4 space-y-4">
+  <!-- Header -->
+  <div class="flex items-center justify-between border-b border-gray-800 pb-3">
+    <div>
+      <h3 class="text-base font-bold text-gray-100 flex items-center gap-2">
+        <span>🎙️</span>
+        <span>Conversational Voice Agent</span>
+      </h3>
+      <p class="text-xs text-gray-400 mt-0.5">Apple Silicon M4 · mlx-whisper turbo · Zuzana (Premium) TTS</p>
+    </div>
+    <div class="flex items-center gap-2">
+      <span id="vw-status-badge" class="px-2.5 py-1 text-[11px] font-semibold rounded-full bg-slate-800 text-slate-400 border border-slate-700 flex items-center gap-1.5">
+        <span class="w-2 h-2 rounded-full bg-slate-500 inline-block"></span>
+        <span id="vw-status-text">Idle</span>
+      </span>
+    </div>
+  </div>
+
+  <!-- Voice Control Main Card -->
+  <div class="bg-gradient-to-br from-slate-900 to-indigo-950/40 border border-slate-800 p-4 rounded-xl space-y-4 shadow-sm">
+    <div class="flex items-center justify-between flex-wrap gap-3">
+      <div class="space-y-1">
+        <div class="text-xs font-semibold text-indigo-400 uppercase tracking-wider">Hands-Free Voice Conversation</div>
+        <div class="text-xs text-slate-300">Talk naturally to your agent. Reacts to silence (4s) or instant mic button cut-off.</div>
+      </div>
+      <div class="flex items-center gap-2">
+        <select id="vw-lang-select" onchange="onLanguageChange()" class="bg-slate-950 border border-slate-700 text-xs rounded-xl px-3 py-2 text-slate-200 focus:outline-none focus:border-indigo-500 font-semibold cursor-pointer shadow-sm">
+          <option value="cs" selected>🇨🇿 Čeština (Zuzana)</option>
+          <option value="en">🇬🇧 English (Samantha)</option>
+        </select>
+        <button id="vw-btn-toggle" onclick="toggleWidgetVoice()" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-semibold transition shadow-md flex items-center gap-2">
+          <span id="vw-toggle-icon">▶️</span>
+          <span id="vw-toggle-label">Start Voice Mode</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Live Preview Stream Box -->
+    <div class="bg-black/60 border border-slate-800/80 rounded-lg p-3 space-y-1.5">
+      <div class="flex items-center justify-between text-[11px]">
+        <span class="text-emerald-400 font-semibold uppercase tracking-wider flex items-center gap-1.5">
+          <span class="inline-block w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+          Live Streaming Preview
+        </span>
+        <span id="vw-pause-timer" class="text-amber-400 font-mono hidden">⏳ 4.0s pause</span>
+      </div>
+      <div id="vw-live-text" class="text-xs text-slate-400 italic min-h-[1.5rem] flex items-center">
+        Waiting for speech...
+      </div>
+    </div>
+  </div>
+
+  <!-- Quick TTS Voice Test -->
+  <div class="bg-slate-900/60 border border-slate-800 p-4 rounded-xl space-y-3">
+    <div class="text-xs font-semibold text-slate-300 flex items-center gap-1.5">
+      <span>🗣️</span>
+      <span id="vw-tts-label">Test Speech Synthesis (Zuzana)</span>
+    </div>
+    <div class="flex gap-2">
+      <input id="vw-tts-input" type="text" value="Ahoj! Vše funguje správně." placeholder="Type text to speak..." class="flex-1 bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-indigo-500 font-sans" />
+      <button onclick="speakWidgetText()" class="px-3.5 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 rounded-lg text-xs font-medium transition flex items-center gap-1.5">
+        <span>🔊 Speak</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Technical Specs Footer -->
+  <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-center text-[10px] text-slate-400">
+    <div class="bg-slate-900/40 border border-slate-800/60 p-2 rounded-lg">
+      <div class="text-slate-500">ASR Engine</div>
+      <div class="text-slate-200 font-semibold font-mono mt-0.5">mlx-whisper turbo</div>
+    </div>
+    <div class="bg-slate-900/40 border border-slate-800/60 p-2 rounded-lg">
+      <div class="text-slate-500">Hardware Cut-off</div>
+      <div class="text-slate-200 font-semibold font-mono mt-0.5">0.6s Debounce Zero</div>
+    </div>
+    <div class="bg-slate-900/40 border border-slate-800/60 p-2 rounded-lg">
+      <div class="text-slate-500">Silence Timeout</div>
+      <div class="text-slate-200 font-semibold font-mono mt-0.5">4.0s Auto-Submit</div>
+    </div>
+    <div class="bg-slate-900/40 border border-slate-800/60 p-2 rounded-lg">
+      <div class="text-slate-500">TTS Engine</div>
+      <div class="text-slate-200 font-semibold font-mono mt-0.5">macOS Zuzana</div>
+    </div>
+  </div>
+</div>
+
+<script>
+let widgetVoiceActive = false;
+let widgetVoicePoll = null;
+
+async function checkWidgetVoiceStatus() {
+  try {
+    const res = await fetch('/api/voice/status');
+    const data = await res.json();
+    if (!data.ok || !data.status) return;
+    const st = data.status;
+
+    const badge = document.getElementById('vw-status-badge');
+    const badgeText = document.getElementById('vw-status-text');
+    const btn = document.getElementById('vw-btn-toggle');
+    const btnLabel = document.getElementById('vw-toggle-label');
+    const btnIcon = document.getElementById('vw-toggle-icon');
+    const liveText = document.getElementById('vw-live-text');
+    const pauseTimer = document.getElementById('vw-pause-timer');
+
+    const langSelect = document.getElementById('vw-lang-select');
+    if (langSelect && st.language) {
+      if (!widgetVoiceActive && st.active) {
+        langSelect.value = st.language;
+      }
+      langSelect.disabled = st.active;
+    }
+
+    widgetVoiceActive = st.active;
+
+    if (st.active) {
+      if (btn) {
+        btn.className = 'px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-semibold transition shadow-md flex items-center gap-2 animate-pulse';
+      }
+      if (btnIcon) btnIcon.textContent = '⏹️';
+      if (btnLabel) btnLabel.textContent = 'Stop Voice Mode';
+
+      if (st.state === 'listening') {
+        if (badge) badge.className = 'px-2.5 py-1 text-[11px] font-semibold rounded-full bg-emerald-950 text-emerald-400 border border-emerald-700/60 flex items-center gap-1.5';
+        if (badgeText) badgeText.textContent = st.language === 'en' ? 'Listening (EN)' : 'Poslouchám (CZ)';
+        if (pauseTimer) pauseTimer.classList.add('hidden');
+      } else if (st.state === 'pause') {
+        if (badge) badge.className = 'px-2.5 py-1 text-[11px] font-semibold rounded-full bg-amber-950 text-amber-400 border border-amber-700/60 flex items-center gap-1.5';
+        if (badgeText) badgeText.textContent = 'Pause';
+        if (pauseTimer) {
+          pauseTimer.classList.remove('hidden');
+          pauseTimer.textContent = `⏳ ${st.silence_remaining || 0}s pause`;
+        }
+      } else if (st.state === 'button_pressed') {
+        if (badge) badge.className = 'px-2.5 py-1 text-[11px] font-semibold rounded-full bg-cyan-950 text-cyan-400 border border-cyan-700/60 flex items-center gap-1.5';
+        if (badgeText) badgeText.textContent = 'Mic Button';
+        if (pauseTimer) pauseTimer.classList.add('hidden');
+      } else if (st.state === 'transcribing') {
+        if (badge) badge.className = 'px-2.5 py-1 text-[11px] font-semibold rounded-full bg-indigo-950 text-indigo-400 border border-indigo-700/60 flex items-center gap-1.5 animate-pulse';
+        if (badgeText) badgeText.textContent = 'Transcribing';
+        if (pauseTimer) pauseTimer.classList.add('hidden');
+      } else if (st.state === 'thinking') {
+        if (badge) badge.className = 'px-2.5 py-1 text-[11px] font-semibold rounded-full bg-purple-950 text-purple-400 border border-purple-700/60 flex items-center gap-1.5 animate-pulse';
+        if (badgeText) badgeText.textContent = 'Thinking';
+        if (pauseTimer) pauseTimer.classList.add('hidden');
+      } else if (st.state === 'speaking') {
+        if (badge) badge.className = 'px-2.5 py-1 text-[11px] font-semibold rounded-full bg-pink-950 text-pink-400 border border-pink-700/60 flex items-center gap-1.5';
+        const speakerName = (st.voice || '').includes('Samantha') ? 'Samantha' : 'Zuzana';
+        if (badgeText) badgeText.textContent = `Speaking (${speakerName})`;
+        if (pauseTimer) pauseTimer.classList.add('hidden');
+      }
+
+      if (liveText) {
+        if (st.last_partial) {
+          liveText.textContent = `"${st.last_partial}" ...`;
+          liveText.className = 'text-xs text-emerald-300 font-medium min-h-[1.5rem] flex items-center';
+        } else if (st.last_user_text) {
+          liveText.textContent = `"${st.last_user_text}"`;
+          liveText.className = 'text-xs text-indigo-200 min-h-[1.5rem] flex items-center';
+        } else {
+          liveText.textContent = st.language === 'en' ? 'Listening for speech (English)...' : 'Čekám na vaši řeč (česky)...';
+          liveText.className = 'text-xs text-slate-400 italic min-h-[1.5rem] flex items-center';
+        }
+      }
+    } else {
+      if (langSelect) langSelect.disabled = false;
+      if (btn) {
+        btn.className = 'px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-semibold transition shadow-md flex items-center gap-2';
+      }
+      if (btnIcon) btnIcon.textContent = '▶️';
+      if (btnLabel) btnLabel.textContent = 'Start Voice Mode';
+      if (badge) badge.className = 'px-2.5 py-1 text-[11px] font-semibold rounded-full bg-slate-800 text-slate-400 border border-slate-700 flex items-center gap-1.5';
+      if (badgeText) badgeText.textContent = 'Idle';
+      if (pauseTimer) pauseTimer.classList.add('hidden');
+      if (liveText) {
+        liveText.textContent = 'Voice mode is inactive. Select language and click "Start Voice Mode".';
+        liveText.className = 'text-xs text-slate-500 italic min-h-[1.5rem] flex items-center';
+      }
+    }
+  } catch (e) {}
+}
+
+function onLanguageChange() {
+  const langSelect = document.getElementById('vw-lang-select');
+  const lang = langSelect ? langSelect.value : 'cs';
+  const ttsInput = document.getElementById('vw-tts-input');
+  const ttsLabel = document.getElementById('vw-tts-label');
+  if (lang === 'en') {
+    if (ttsInput) ttsInput.value = 'Hello! Everything is working properly.';
+    if (ttsLabel) ttsLabel.textContent = 'Test Speech Synthesis (Samantha)';
+  } else {
+    if (ttsInput) ttsInput.value = 'Ahoj! Vše funguje správně.';
+    if (ttsLabel) ttsLabel.textContent = 'Test Speech Synthesis (Zuzana)';
+  }
+}
+
+async function toggleWidgetVoice() {
+  if (widgetVoiceActive) {
+    await fetch('/api/voice/stop', { method: 'POST', body: JSON.stringify({}) });
+  } else {
+    const langSelect = document.getElementById('vw-lang-select');
+    const lang = langSelect ? langSelect.value : 'cs';
+    const voice = lang === 'en' ? 'Samantha' : 'Zuzana (Premium)';
+    await fetch('/api/voice/start', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ session_id: 'default', language: lang, voice: voice })
+    });
+  }
+  await checkWidgetVoiceStatus();
+}
+
+async function speakWidgetText() {
+  const input = document.getElementById('vw-tts-input');
+  const text = input ? input.value.trim() : '';
+  if (!text) return;
+  const langSelect = document.getElementById('vw-lang-select');
+  const lang = langSelect ? langSelect.value : 'cs';
+  const voice = lang === 'en' ? 'Samantha' : 'Zuzana (Premium)';
+  await fetch('/api/voice/speak', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ text, voice: voice })
+  });
+}
+
+if (!widgetVoicePoll) {
+  widgetVoicePoll = setInterval(checkWidgetVoiceStatus, 800);
+}
+checkWidgetVoiceStatus();
+</script>
+

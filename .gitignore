@@ -1,0 +1,28 @@
+# --- private / machine-local (never commit) ---
+data/
+envs/
+logs/
+backups/db/
+*.db
+*.db-wal
+*.db-shm
+*.pre-restore
+.env
+*.env
+secrets*
+!runtime/secrets_store.py
+*.pem
+*.key
+
+# --- python / tooling ---
+__pycache__/
+*.pyc
+.venv/
+.pytest_cache/
+.ruff_cache/
+
+# --- OS / editor ---
+Thumbs.db
+.DS_Store
+.vscode/
+

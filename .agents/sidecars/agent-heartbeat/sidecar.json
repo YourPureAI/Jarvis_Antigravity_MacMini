@@ -1,0 +1,12 @@
+{
+  "builtin": "schedule",
+  "args": [
+    "* * * * *",
+    "python",
+    "runtime/agent.py",
+    "tick"
+  ],
+  "restart_policy": "always",
+  "display_name": "Personal Agent Heartbeat (Local)",
+  "description": "Project-local 1-minute heartbeat for Google_Antigravity_Agent."
+}

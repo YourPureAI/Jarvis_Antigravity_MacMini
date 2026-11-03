@@ -1,0 +1,473 @@
+<div class="space-y-4 font-sans text-slate-100">
+  <!-- Top Banner / Controller Header -->
+  <div class="p-4 rounded-xl bg-slate-900/90 border border-slate-800 shadow-lg space-y-3">
+    <div class="flex items-center justify-between border-b border-slate-800/80 pb-3">
+      <div class="flex items-center gap-2.5">
+        <div class="w-8 h-8 rounded-lg bg-red-600/20 border border-red-500/40 flex items-center justify-center text-red-400 font-bold text-sm shadow-inner">
+          ▶
+        </div>
+        <div>
+          <h2 class="text-sm font-semibold text-slate-100 flex items-center gap-2">
+            YouTube & Music Controller
+            <span class="text-[10px] bg-red-500/20 text-red-400 border border-red-500/30 px-2 py-0.5 rounded-full font-mono">Autoplay Active</span>
+          </h2>
+          <p class="text-[11px] text-slate-400">Direct zero-confirmation playback & playlist manager</p>
+        </div>
+      </div>
+      <!-- Target Platform Selector -->
+      <div class="flex items-center bg-slate-950 p-1 rounded-lg border border-slate-800 text-xs">
+        <button id="ytm-target-yt" onclick="setYtmTarget('youtube')" class="px-2.5 py-1 rounded-md text-[11px] font-medium bg-red-600 text-white shadow-sm transition">
+          YouTube
+        </button>
+        <button id="ytm-target-ytm" onclick="setYtmTarget('music')" class="px-2.5 py-1 rounded-md text-[11px] font-medium text-slate-400 hover:text-slate-200 transition">
+          YouTube Music
+        </button>
+      </div>
+    </div>
+
+    <!-- Search & Quick Play Input Bar -->
+    <div class="space-y-2">
+      <div class="flex gap-2">
+        <input id="ytm-search-input" type="text" placeholder="Search track, artist, album, mood, or paste YouTube link..." 
+               onkeydown="if(event.key === 'Enter') runYtmPlay(false)"
+               class="flex-1 bg-slate-950 border border-slate-700/80 rounded-lg px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-red-500 font-mono transition" />
+        <button onclick="runYtmPlay(false)" title="Play directly inside dashboard widget"
+                class="px-3.5 py-2 bg-red-600 hover:bg-red-500 text-white text-xs font-medium rounded-lg shadow-sm transition flex items-center gap-1.5 whitespace-nowrap">
+          <span>▶ Play Here</span>
+        </button>
+        <button onclick="runYtmPlay(true)" title="Launch in your default browser session with autoplay"
+                class="px-3 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-medium rounded-lg border border-slate-700 transition flex items-center gap-1 whitespace-nowrap">
+          <span>↗ In Browser</span>
+        </button>
+      </div>
+
+      <!-- Quick Mood/Genre Pills -->
+      <div class="flex flex-wrap gap-1.5 pt-1 text-[11px]">
+        <span class="text-slate-500 text-[10px] self-center mr-1">Quick Picks:</span>
+        <button onclick="quickPlay('lofi hip hop radio beats to relax study to')" class="px-2 py-0.5 rounded-full bg-slate-800/80 hover:bg-slate-700 text-slate-300 border border-slate-700/50 transition">☕ Lofi Beats</button>
+        <button onclick="quickPlay('synthwave chill radio beats to game to')" class="px-2 py-0.5 rounded-full bg-slate-800/80 hover:bg-slate-700 text-slate-300 border border-slate-700/50 transition">⚡ Synthwave</button>
+        <button onclick="quickPlay('classical music for studying deep focus')" class="px-2 py-0.5 rounded-full bg-slate-800/80 hover:bg-slate-700 text-slate-300 border border-slate-700/50 transition">🎻 Classical</button>
+        <button onclick="quickPlay('ambient electronic music for programming')" class="px-2 py-0.5 rounded-full bg-slate-800/80 hover:bg-slate-700 text-slate-300 border border-slate-700/50 transition">🎧 Coding Ambient</button>
+        <button onclick="quickPlay('workout motivation music mix')" class="px-2 py-0.5 rounded-full bg-slate-800/80 hover:bg-slate-700 text-slate-300 border border-slate-700/50 transition">🔥 Workout</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Now Playing & Embedded Player Section -->
+  <div id="ytm-player-card" class="p-4 rounded-xl bg-slate-900/90 border border-slate-800 space-y-3 hidden">
+    <div class="flex items-center justify-between">
+      <div class="flex items-center gap-2">
+        <span class="w-2.5 h-2.5 rounded-full bg-green-500 animate-pulse"></span>
+        <span id="ytm-now-title" class="text-xs font-medium text-slate-200 truncate max-w-md">Now Playing</span>
+      </div>
+      <div class="flex items-center gap-2">
+        <a id="ytm-external-link" href="#" target="_blank" class="text-[11px] text-red-400 hover:text-red-300 underline">Open Full Page</a>
+        <button onclick="togglePlayerEmbed()" class="text-[11px] text-slate-400 hover:text-slate-200">Hide Player</button>
+      </div>
+    </div>
+    <div id="ytm-iframe-container" class="relative rounded-lg overflow-hidden border border-slate-800 aspect-video bg-black max-w-2xl mx-auto shadow-2xl">
+      <iframe id="ytm-player-iframe" class="w-full h-full" src="" frameborder="0" 
+              allow="accelerometer; autoplay *; clipboard-write; encrypted-media *; gyroscope; picture-in-picture *; web-share *" 
+              allowfullscreen></iframe>
+    </div>
+  </div>
+
+  <!-- Playlists Section -->
+  <div class="p-4 rounded-xl bg-slate-900/90 border border-slate-800 space-y-4">
+    <div class="flex items-center justify-between border-b border-slate-800/80 pb-2.5">
+      <div class="flex items-center gap-2">
+        <span class="text-xs font-semibold text-slate-200">🎵 Playlists & Collections</span>
+        <span id="ytm-playlist-count" class="text-[10px] text-slate-500 bg-slate-800 px-2 py-0.5 rounded-full">0</span>
+      </div>
+      <div class="flex gap-2">
+        <button onclick="toggleNewPlaylistModal()" class="px-2.5 py-1 bg-indigo-600 hover:bg-indigo-500 text-white text-[11px] font-medium rounded-lg transition shadow-sm">
+          + New Playlist
+        </button>
+        <button onclick="loadPlaylists()" class="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 text-[11px] rounded-lg border border-slate-700 transition">
+          ↻ Refresh
+        </button>
+      </div>
+    </div>
+
+    <!-- Create Playlist Inline Box -->
+    <div id="ytm-new-pl-box" class="p-3 bg-slate-950/80 rounded-lg border border-indigo-900/50 space-y-2.5 hidden">
+      <div class="text-xs font-medium text-indigo-400">Create New Playlist</div>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
+        <input id="ytm-new-pl-name" type="text" placeholder="Playlist Name (e.g. Focus Flow)" class="bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-indigo-500" />
+        <input id="ytm-new-pl-desc" type="text" placeholder="Description (optional)" class="bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-indigo-500" />
+      </div>
+      <div class="flex justify-end gap-2 pt-1">
+        <button onclick="toggleNewPlaylistModal()" class="px-3 py-1 bg-slate-800 text-slate-300 text-xs rounded-lg hover:bg-slate-700">Cancel</button>
+        <button onclick="createPlaylist()" class="px-3 py-1 bg-indigo-600 text-white text-xs rounded-lg hover:bg-indigo-500">Create</button>
+      </div>
+    </div>
+
+    <!-- Playlist Cards Container -->
+    <div id="ytm-playlists-list" class="grid grid-cols-1 md:grid-cols-2 gap-3">
+      <div class="text-xs text-slate-500 col-span-2 py-4 text-center">Loading playlists...</div>
+    </div>
+  </div>
+
+  <!-- Activity & Output Logs -->
+  <div id="ytm-output-box" class="p-3 bg-black/80 rounded-xl border border-slate-800/80 text-[11px] font-mono text-slate-300 max-h-40 overflow-y-auto whitespace-pre-wrap hidden"></div>
+</div>
+
+<script>
+var currentTarget = 'youtube';
+var currentPlaylistTracks = [];
+var currentTrackIndex = 0;
+
+function setYtmTarget(target) {
+  currentTarget = target;
+  const btnYt = document.getElementById('ytm-target-yt');
+  const btnYtm = document.getElementById('ytm-target-ytm');
+  if (target === 'youtube') {
+    btnYt.className = 'px-2.5 py-1 rounded-md text-[11px] font-medium bg-red-600 text-white shadow-sm transition';
+    btnYtm.className = 'px-2.5 py-1 rounded-md text-[11px] font-medium text-slate-400 hover:text-slate-200 transition';
+  } else {
+    btnYtm.className = 'px-2.5 py-1 rounded-md text-[11px] font-medium bg-red-600 text-white shadow-sm transition';
+    btnYt.className = 'px-2.5 py-1 rounded-md text-[11px] font-medium text-slate-400 hover:text-slate-200 transition';
+  }
+}
+
+function logOutput(msg) {
+  const box = document.getElementById('ytm-output-box');
+  box.classList.remove('hidden');
+  box.textContent = `[${new Date().toLocaleTimeString()}] ${msg}\n` + box.textContent;
+}
+
+function quickPlay(query) {
+  const inputEl = document.getElementById('ytm-search-input');
+  if (inputEl) inputEl.value = query;
+  runYtmPlay(false, query);
+}
+
+// Universal helper to mount and guarantee immediate autoplay inside widget
+function mountAndPlayYouTube(vid, title) {
+  const playerCard = document.getElementById('ytm-player-card');
+  const container = document.getElementById('ytm-iframe-container');
+  const titleEl = document.getElementById('ytm-now-title');
+  const linkEl = document.getElementById('ytm-external-link');
+
+  if (playerCard) playerCard.classList.remove('hidden');
+  if (titleEl) titleEl.textContent = title || 'Playing YouTube Track';
+  if (linkEl) linkEl.href = `https://www.youtube.com/watch?v=${vid}&autoplay=1`;
+
+  const origin = window.location.origin || (window.location.protocol + '//' + window.location.host);
+  const embedUrl = `https://www.youtube.com/embed/${vid}?autoplay=1&enablejsapi=1&playsinline=1&origin=${encodeURIComponent(origin)}&rel=0`;
+
+  if (container) {
+    // Recreate fresh iframe element with src already populated and full autoplay permissions delegated
+    container.innerHTML = `
+      <iframe id="ytm-player-iframe"
+              class="w-full h-full"
+              src="${embedUrl}"
+              frameborder="0"
+              allow="accelerometer; autoplay *; clipboard-write; encrypted-media *; gyroscope; picture-in-picture *; web-share *"
+              allowfullscreen></iframe>
+    `;
+
+    const iframe = document.getElementById('ytm-player-iframe');
+    const sendPlay = () => {
+      try {
+        if (iframe && iframe.contentWindow) {
+          iframe.contentWindow.postMessage(JSON.stringify({ event: 'command', func: 'playVideo', args: [] }), '*');
+        }
+      } catch (e) {}
+    };
+
+    iframe.onload = () => {
+      sendPlay();
+      setTimeout(sendPlay, 350);
+      setTimeout(sendPlay, 900);
+    };
+  }
+  logOutput(`Playing track: ${title || vid}`);
+}
+
+// Universal YouTube & Media Control Hooks
+window.pauseYouTube = function() {
+  const iframe = document.getElementById('ytm-player-iframe');
+  if (iframe && iframe.contentWindow) {
+    try {
+      iframe.contentWindow.postMessage(JSON.stringify({ event: 'command', func: 'pauseVideo', args: [] }), '*');
+    } catch (e) {}
+  }
+  logOutput('YouTube paused via audio controller');
+};
+
+window.stopYouTube = function() {
+  const iframe = document.getElementById('ytm-player-iframe');
+  if (iframe && iframe.contentWindow) {
+    try {
+      iframe.contentWindow.postMessage(JSON.stringify({ event: 'command', func: 'stopVideo', args: [] }), '*');
+    } catch (e) {}
+  }
+  const playerCard = document.getElementById('ytm-player-card');
+  if (playerCard) playerCard.classList.add('hidden');
+  logOutput('YouTube stopped via audio controller');
+};
+
+window.resumeYouTube = function() {
+  const iframe = document.getElementById('ytm-player-iframe');
+  if (iframe && iframe.contentWindow) {
+    try {
+      iframe.contentWindow.postMessage(JSON.stringify({ event: 'command', func: 'playVideo', args: [] }), '*');
+    } catch (e) {}
+  }
+  const playerCard = document.getElementById('ytm-player-card');
+  if (playerCard) playerCard.classList.remove('hidden');
+  logOutput('YouTube resumed');
+};
+
+window.addEventListener('agent-audio-control', function(e) {
+  const d = e.detail || {};
+  if (!d.target || d.target === 'all' || d.target === 'youtube' || d.target === 'music' || d.target === 'run-youtube-music') {
+    if (d.action === 'pause') window.pauseYouTube();
+    else if (d.action === 'stop') window.stopYouTube();
+    else if (d.action === 'play' || d.action === 'resume') window.resumeYouTube();
+  }
+});
+
+// Global hook for direct playback triggers from Chat or external callers
+window.playYouTubeSearch = function(query, data, target) {
+  if (target) {
+    setYtmTarget(target);
+  }
+
+  const q = (query || (data && (data.title || data.query)) || '').trim();
+  const inputEl = document.getElementById('ytm-search-input');
+  if (inputEl && q) {
+    inputEl.value = q;
+  }
+
+  if (data && data.video_id) {
+    mountAndPlayYouTube(data.video_id, data.title || q);
+  } else if (q) {
+    runYtmPlay(false, q);
+  }
+};
+
+async function runYtmPlay(launchBrowser, queryOverride) {
+  const inputEl = document.getElementById('ytm-search-input');
+  const query = (queryOverride !== undefined && queryOverride !== null && queryOverride !== '')
+    ? String(queryOverride).trim()
+    : (inputEl ? inputEl.value.trim() : '');
+
+  if (!query) return;
+  if (inputEl) inputEl.value = query;
+
+  logOutput(`Resolving "${query}" (target: ${currentTarget}, browser: ${launchBrowser})...`);
+
+  const args = ['play', query, '--target', currentTarget];
+  if (!launchBrowser) {
+    args.push('--no-open');
+  } else {
+    args.push('--open');
+  }
+
+  const res = await window.AgentBridge.runSkill('run-youtube-music', 'main.py', args);
+  if (res.ok && res.json && res.json.ok) {
+    const data = res.json;
+    mountAndPlayYouTube(data.video_id, data.title);
+  } else {
+    logOutput(`Error: ${res.output || 'Failed to play track'}`);
+  }
+}
+
+function togglePlayerEmbed() {
+  const cont = document.getElementById('ytm-iframe-container');
+  cont.classList.toggle('hidden');
+}
+
+function toggleNewPlaylistModal() {
+  const box = document.getElementById('ytm-new-pl-box');
+  box.classList.toggle('hidden');
+}
+
+async function createPlaylist() {
+  const name = document.getElementById('ytm-new-pl-name').value.trim();
+  const desc = document.getElementById('ytm-new-pl-desc').value.trim();
+  if (!name) return;
+
+  const res = await window.AgentBridge.runSkill('run-youtube-music', 'main.py', ['playlist', 'create', name, '--description', desc]);
+  if (res.ok && res.json && res.json.ok) {
+    document.getElementById('ytm-new-pl-name').value = '';
+    document.getElementById('ytm-new-pl-desc').value = '';
+    toggleNewPlaylistModal();
+    logOutput(`Playlist created: "${name}"`);
+    loadPlaylists();
+  } else {
+    logOutput(`Error creating playlist: ${res.output}`);
+  }
+}
+
+async function loadPlaylists() {
+  const container = document.getElementById('ytm-playlists-list');
+  const countBadge = document.getElementById('ytm-playlist-count');
+  container.innerHTML = `<div class="text-xs text-slate-500 col-span-2 py-4 text-center">Loading playlists...</div>`;
+
+  const res = await window.AgentBridge.runSkill('run-youtube-music', 'main.py', ['playlist', 'list']);
+  if (!res.ok || !res.json || !res.json.ok) {
+    container.innerHTML = `<div class="text-xs text-red-400 col-span-2 py-4 text-center">Failed to load playlists</div>`;
+    return;
+  }
+
+  const list = res.json.playlists || [];
+  countBadge.textContent = list.length;
+  if (list.length === 0) {
+    container.innerHTML = `
+      <div class="col-span-2 p-6 rounded-lg bg-slate-950/60 border border-slate-800 text-center space-y-2">
+        <p class="text-xs text-slate-400">No playlists yet.</p>
+        <button onclick="seedPresets()" class="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white text-xs rounded-lg transition">
+          Seed 5 Recommended Focus Playlists
+        </button>
+      </div>`;
+    return;
+  }
+
+  container.innerHTML = list.map(pl => `
+    <div class="p-3.5 rounded-xl bg-slate-950/70 border border-slate-800 hover:border-slate-700/80 transition space-y-2.5">
+      <div class="flex items-start justify-between">
+        <div>
+          <div class="text-xs font-semibold text-slate-200">${pl.name}</div>
+          <div class="text-[11px] text-slate-400 line-clamp-1">${pl.description || 'Custom playlist'}</div>
+          <div class="text-[10px] text-slate-500 font-mono mt-0.5">${pl.track_count} track(s)</div>
+        </div>
+        <div class="flex gap-1.5">
+          <button onclick="playEntirePlaylist('${pl.name.replace(/'/g, "\\'")}', false)" title="Play in widget" class="px-2 py-1 bg-red-600/90 hover:bg-red-500 text-white text-[11px] font-medium rounded-md shadow-sm transition">
+            ▶ Play
+          </button>
+          <button onclick="playEntirePlaylist('${pl.name.replace(/'/g, "\\'")}', true)" title="Open in browser with autoplay" class="px-2 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 text-[11px] rounded-md border border-slate-700 transition">
+            ↗
+          </button>
+          <button onclick="deletePlaylist('${pl.name.replace(/'/g, "\\'")}')" title="Delete playlist" class="px-1.5 py-1 text-slate-500 hover:text-red-400 text-[11px] transition">
+            ✕
+          </button>
+        </div>
+      </div>
+      <!-- Add track input & expand button -->
+      <div class="flex gap-1.5 pt-1">
+        <input id="add-track-input-${pl.id}" type="text" placeholder="Add song or YouTube URL..." class="flex-1 bg-slate-900 border border-slate-800 rounded px-2 py-1 text-[11px] text-slate-200 focus:outline-none focus:border-indigo-500" />
+        <button onclick="addTrackToPlaylist('${pl.name.replace(/'/g, "\\'")}', ${pl.id})" class="px-2 py-1 bg-slate-800 hover:bg-slate-700 text-slate-200 text-[11px] rounded border border-slate-700">
+          + Add
+        </button>
+        <button onclick="inspectPlaylist('${pl.name.replace(/'/g, "\\'")}')" class="px-2 py-1 bg-slate-800/80 hover:bg-slate-700 text-slate-400 text-[11px] rounded">
+          Tracks
+        </button>
+      </div>
+      <!-- Expanded Tracks Container -->
+      <div id="tracks-for-${pl.id}" class="space-y-1 pt-1 border-t border-slate-900 hidden text-[11px]"></div>
+    </div>
+  `).join('');
+}
+
+async function addTrackToPlaylist(name, plId) {
+  const input = document.getElementById(`add-track-input-${plId}`);
+  const track = input.value.trim();
+  if (!track) return;
+  input.value = 'Adding...';
+
+  const res = await window.AgentBridge.runSkill('run-youtube-music', 'main.py', ['playlist', 'add', name, track]);
+  input.value = '';
+  if (res.ok && res.json && res.json.ok) {
+    logOutput(`Added "${res.json.item.title}" to ${name}`);
+    loadPlaylists();
+  } else {
+    logOutput(`Failed to add track: ${res.output}`);
+  }
+}
+
+async function inspectPlaylist(name) {
+  const res = await window.AgentBridge.runSkill('run-youtube-music', 'main.py', ['playlist', 'show', name]);
+  if (!res.ok || !res.json || !res.json.ok) return;
+
+  const pl = res.json.playlist;
+  const targetDiv = document.getElementById(`tracks-for-${pl.id}`);
+  if (!targetDiv) return;
+
+  targetDiv.classList.toggle('hidden');
+  if (targetDiv.classList.contains('hidden')) return;
+
+  if (pl.tracks.length === 0) {
+    targetDiv.innerHTML = `<div class="text-[10px] text-slate-500 py-1">No tracks in this playlist yet.</div>`;
+    return;
+  }
+
+  targetDiv.innerHTML = pl.tracks.map((t, idx) => `
+    <div class="flex items-center justify-between p-1.5 rounded bg-slate-900/60 hover:bg-slate-900 text-[11px]">
+      <div class="truncate max-w-[200px] text-slate-300">
+        <span class="text-slate-500 font-mono text-[10px] mr-1">${idx + 1}.</span>${t.title}
+      </div>
+      <div class="flex items-center gap-1">
+        <button onclick="playSpecificTrack('${t.video_id}', '${t.title.replace(/'/g, "\\'")}')" class="text-red-400 hover:text-red-300 px-1">▶</button>
+        <button onclick="removeTrack('${name.replace(/'/g, "\\'")}', ${t.id})" class="text-slate-500 hover:text-red-400 px-1">✕</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+function playSpecificTrack(vid, title) {
+  mountAndPlayYouTube(vid, title);
+}
+
+async function playEntirePlaylist(name, openBrowser) {
+  logOutput(`Loading playlist: "${name}"...`);
+  const args = ['playlist', 'play', name, '--target', currentTarget];
+  if (!openBrowser) {
+    args.push('--no-open');
+  }
+
+  const res = await window.AgentBridge.runSkill('run-youtube-music', 'main.py', args);
+  if (res.ok && res.json && res.json.ok) {
+    const data = res.json;
+    logOutput(`Starting playlist "${name}" (${data.total_tracks} tracks)`);
+    playSpecificTrack(data.first_track.video_id, data.first_track.title);
+  } else {
+    logOutput(`Error: ${res.output}`);
+  }
+}
+
+async function removeTrack(plName, itemId) {
+  const res = await window.AgentBridge.runSkill('run-youtube-music', 'main.py', ['playlist', 'remove', plName, String(itemId)]);
+  if (res.ok) {
+    logOutput(`Track removed from ${plName}`);
+    inspectPlaylist(plName);
+  }
+}
+
+async function deletePlaylist(name) {
+  if (!confirm(`Delete playlist "${name}"?`)) return;
+  const res = await window.AgentBridge.runSkill('run-youtube-music', 'main.py', ['playlist', 'delete', name]);
+  if (res.ok) {
+    logOutput(`Playlist "${name}" deleted.`);
+    loadPlaylists();
+  }
+}
+
+async function seedPresets() {
+  logOutput("Seeding 5 focus playlists...");
+  const res = await window.AgentBridge.runSkill('run-youtube-music', 'main.py', ['presets', '--seed']);
+  if (res.ok) {
+    logOutput("Seeded playlists successfully!");
+    loadPlaylists();
+  }
+}
+
+function checkAutoPlayYouTube() {
+  const autoPlayData = window._agentAutoPlayYouTube;
+  if (autoPlayData) {
+    window._agentAutoPlayYouTube = null;
+    if (typeof autoPlayData === 'string') {
+      window.playYouTubeSearch(autoPlayData);
+    } else if (autoPlayData && typeof autoPlayData === 'object') {
+      window.playYouTubeSearch(autoPlayData.query || autoPlayData.title, autoPlayData, autoPlayData.target);
+    }
+  }
+}
+
+// Initial load
+loadPlaylists();
+checkAutoPlayYouTube();
+</script>
+

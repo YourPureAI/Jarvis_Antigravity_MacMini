@@ -1,0 +1,410 @@
+<div class="space-y-4 font-sans text-slate-100">
+  <!-- Top Banner / Controller Header -->
+  <div class="p-4 rounded-xl bg-slate-900/90 border border-slate-800 shadow-lg space-y-3">
+    <div class="flex items-center justify-between border-b border-slate-800/80 pb-3">
+      <div class="flex items-center gap-3">
+        <div class="w-9 h-9 rounded-xl bg-indigo-500/20 border border-indigo-500/40 flex items-center justify-center text-indigo-400 font-bold text-base shadow-inner">
+          🎛️
+        </div>
+        <div>
+          <h2 class="text-sm font-semibold text-slate-100 flex items-center gap-2">
+            Universal Audio Controller
+            <span id="audio-connection-badge" class="text-[10px] bg-indigo-500/20 text-indigo-400 border border-indigo-500/30 px-2 py-0.5 rounded-full font-mono">
+              Mac Mini M4
+            </span>
+          </h2>
+          <p class="text-[11px] text-slate-400">Master volume, mute & universal pause/stop across Radio, YouTube & Mac Mini</p>
+        </div>
+      </div>
+      <div class="flex items-center gap-2">
+        <button onclick="refreshAudioStatus()" title="Refresh volume & audio state" class="px-2.5 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs rounded-lg border border-slate-700 transition flex items-center gap-1">
+          ↻ <span>Refresh</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Master Volume Section -->
+    <div class="p-4 rounded-xl bg-slate-950/80 border border-slate-800/80 space-y-4">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div class="flex items-center gap-3">
+          <button id="btn-master-mute" onclick="toggleMute()" class="w-10 h-10 rounded-xl bg-slate-800 hover:bg-slate-700 text-lg flex items-center justify-center border border-slate-700 transition">
+            🔊
+          </button>
+          <div>
+            <div class="flex items-center gap-2">
+              <span class="text-xs font-semibold text-slate-200">Mac Mini Master Volume</span>
+              <span id="vol-mute-indicator" class="hidden text-[10px] bg-red-500/20 text-red-400 border border-red-500/30 px-1.5 py-0.2 rounded font-mono">MUTED</span>
+            </div>
+            <p id="vol-mode-label" class="text-[11px] text-slate-500 font-mono">Host: macmini (192.168.1.100)</p>
+          </div>
+        </div>
+        <div class="flex items-center gap-2">
+          <span id="vol-display" class="text-2xl font-bold font-mono text-indigo-400">--%</span>
+        </div>
+      </div>
+
+      <!-- Volume Slider -->
+      <div class="space-y-1.5">
+        <div class="flex justify-between text-[10px] text-slate-500 font-mono">
+          <span>0%</span>
+          <span>50%</span>
+          <span>100%</span>
+        </div>
+        <input id="vol-slider" type="range" min="0" max="100" value="70" onchange="applyVolumeSlider(this.value)" oninput="updateVolumeLabel(this.value)"
+               class="w-full accent-indigo-500 h-2 bg-slate-800 rounded-lg cursor-pointer transition" />
+      </div>
+
+      <!-- Quick Step and Preset Buttons -->
+      <div class="flex flex-wrap items-center justify-between gap-2 pt-1 border-t border-slate-900">
+        <!-- Step buttons -->
+        <div class="flex items-center gap-1.5 text-xs">
+          <span class="text-[11px] text-slate-500 mr-1">Steps:</span>
+          <button onclick="stepVolume(-10)" class="px-2 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded border border-slate-700 text-xs font-mono transition">-10%</button>
+          <button onclick="stepVolume(-5)" class="px-2 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded border border-slate-700 text-xs font-mono transition">-5%</button>
+          <button onclick="stepVolume(5)" class="px-2 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded border border-slate-700 text-xs font-mono transition">+5%</button>
+          <button onclick="stepVolume(10)" class="px-2 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded border border-slate-700 text-xs font-mono transition">+10%</button>
+        </div>
+
+        <!-- Presets -->
+        <div class="flex items-center gap-1.5 text-xs">
+          <span class="text-[11px] text-slate-500 mr-1">Presets:</span>
+          <button onclick="setExactVolume(20)" class="px-2 py-1 bg-slate-900 hover:bg-slate-800 text-slate-400 hover:text-slate-200 rounded border border-slate-800 text-xs font-mono transition">20%</button>
+          <button onclick="setExactVolume(40)" class="px-2 py-1 bg-slate-900 hover:bg-slate-800 text-slate-400 hover:text-slate-200 rounded border border-slate-800 text-xs font-mono transition">40%</button>
+          <button onclick="setExactVolume(60)" class="px-2 py-1 bg-slate-900 hover:bg-slate-800 text-slate-400 hover:text-slate-200 rounded border border-slate-800 text-xs font-mono transition">60%</button>
+          <button onclick="setExactVolume(80)" class="px-2 py-1 bg-slate-900 hover:bg-slate-800 text-slate-400 hover:text-slate-200 rounded border border-slate-800 text-xs font-mono transition">80%</button>
+          <button onclick="setExactVolume(100)" class="px-2 py-1 bg-slate-900 hover:bg-slate-800 text-slate-400 hover:text-slate-200 rounded border border-slate-800 text-xs font-mono transition">100%</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Master Universal Transport Control Bar -->
+    <div class="p-3.5 rounded-xl bg-slate-950/80 border border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-3">
+      <div>
+        <div class="text-xs font-semibold text-slate-200 flex items-center gap-2">
+          <span>Universal Playback Transport</span>
+          <span class="text-[10px] bg-slate-800 text-slate-400 px-2 py-0.5 rounded-full font-mono">All Sources</span>
+        </div>
+        <p class="text-[11px] text-slate-400">Controls Radio, YouTube music & Mac Mini media in a single click</p>
+      </div>
+
+      <div class="flex items-center gap-2.5">
+        <button onclick="universalPause()" title="Pause all playing streams and media"
+                class="px-3.5 py-2 bg-amber-600 hover:bg-amber-500 text-slate-950 font-bold text-xs rounded-lg shadow-sm transition flex items-center gap-1.5">
+          <span>⏸ Pause All</span>
+        </button>
+        <button onclick="universalStop()" title="Stop all streams and reset players"
+                class="px-3.5 py-2 bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs rounded-lg shadow-sm transition flex items-center gap-1.5">
+          <span>⏹ Stop All</span>
+        </button>
+        <button onclick="universalResume()" title="Resume paused streams"
+                class="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs rounded-lg shadow-sm transition flex items-center gap-1.5">
+          <span>▶ Resume All</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Audio Sources Grid (Radio, YouTube, Mac Mini) -->
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+    <!-- Source 1: Online Radio -->
+    <div class="p-3.5 rounded-xl bg-slate-900/90 border border-slate-800/80 space-y-3 flex flex-col justify-between">
+      <div>
+        <div class="flex items-center justify-between mb-1.5">
+          <div class="flex items-center gap-2">
+            <span class="text-base">📻</span>
+            <span class="text-xs font-semibold text-slate-200">Online Radio</span>
+          </div>
+          <span id="src-radio-badge" class="text-[10px] px-2 py-0.5 rounded-full font-mono bg-slate-800 text-slate-400">Ready</span>
+        </div>
+        <p id="src-radio-info" class="text-[11px] text-slate-400 truncate">Czech & NZ Live Radio Streams</p>
+      </div>
+      <div class="flex items-center gap-2 pt-2 border-t border-slate-800/80">
+        <button onclick="controlSource('radio', 'pause')" class="flex-1 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs rounded-lg border border-slate-700 transition">
+          ⏸ Pause
+        </button>
+        <button onclick="controlSource('radio', 'stop')" class="flex-1 py-1.5 bg-slate-800 hover:bg-slate-700 text-rose-300 text-xs rounded-lg border border-slate-700 transition">
+          ⏹ Stop
+        </button>
+        <button onclick="navigateToSkill('online-radio')" title="Open Online Radio Player" class="px-2.5 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-slate-200 text-xs rounded-lg border border-slate-700 transition">
+          ↗
+        </button>
+      </div>
+    </div>
+
+    <!-- Source 2: YouTube & YouTube Music -->
+    <div class="p-3.5 rounded-xl bg-slate-900/90 border border-slate-800/80 space-y-3 flex flex-col justify-between">
+      <div>
+        <div class="flex items-center justify-between mb-1.5">
+          <div class="flex items-center gap-2">
+            <span class="text-base text-red-500">▶</span>
+            <span class="text-xs font-semibold text-slate-200">YouTube & Music</span>
+          </div>
+          <span id="src-yt-badge" class="text-[10px] px-2 py-0.5 rounded-full font-mono bg-slate-800 text-slate-400">Ready</span>
+        </div>
+        <p id="src-yt-info" class="text-[11px] text-slate-400 truncate">Autoplay Music & Video Player</p>
+      </div>
+      <div class="flex items-center gap-2 pt-2 border-t border-slate-800/80">
+        <button onclick="controlSource('youtube', 'pause')" class="flex-1 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs rounded-lg border border-slate-700 transition">
+          ⏸ Pause
+        </button>
+        <button onclick="controlSource('youtube', 'stop')" class="flex-1 py-1.5 bg-slate-800 hover:bg-slate-700 text-rose-300 text-xs rounded-lg border border-slate-700 transition">
+          ⏹ Stop
+        </button>
+        <button onclick="navigateToSkill('run-youtube-music')" title="Open YouTube & Music Player" class="px-2.5 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-slate-200 text-xs rounded-lg border border-slate-700 transition">
+          ↗
+        </button>
+      </div>
+    </div>
+
+    <!-- Source 3: Mac Mini Native Audio -->
+    <div class="p-3.5 rounded-xl bg-slate-900/90 border border-slate-800/80 space-y-3 flex flex-col justify-between">
+      <div>
+        <div class="flex items-center justify-between mb-1.5">
+          <div class="flex items-center gap-2">
+            <span class="text-base">🍎</span>
+            <span class="text-xs font-semibold text-slate-200">Mac Mini Hardware</span>
+          </div>
+          <span id="src-mac-badge" class="text-[10px] px-2 py-0.5 rounded-full font-mono bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">Online</span>
+        </div>
+        <p id="src-mac-info" class="text-[11px] text-slate-400 truncate">Apple M4 • 192.168.1.100</p>
+      </div>
+      <div class="flex items-center gap-2 pt-2 border-t border-slate-800/80">
+        <button onclick="toggleMute()" id="btn-card-mute" class="flex-1 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs rounded-lg border border-slate-700 transition">
+          Mute / Unmute
+        </button>
+        <button onclick="controlSource('macmini', 'pause')" class="flex-1 py-1.5 bg-slate-800 hover:bg-slate-700 text-amber-300 text-xs rounded-lg border border-slate-700 transition">
+          ⏸ Pause
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Feedback / Output Log Box -->
+  <div id="audio-output-box" class="p-3 bg-black/80 rounded-xl border border-slate-800 text-[11px] font-mono text-slate-400 max-h-32 overflow-y-auto whitespace-pre-wrap hidden">
+  </div>
+</div>
+
+<script>
+  var audioState = {
+    volume: 70,
+    muted: false,
+    input_volume: null,
+    alert_volume: null,
+    is_local: false,
+    host: 'macmini',
+    skills: {}
+  };
+
+  function logAudio(msg) {
+    const box = document.getElementById('audio-output-box');
+    if (box) {
+      box.classList.remove('hidden');
+      box.textContent = `[${new Date().toLocaleTimeString()}] ${msg}\n` + box.textContent;
+    }
+  }
+
+  function updateVolumeLabel(val) {
+    const disp = document.getElementById('vol-display');
+    if (disp) disp.textContent = `${val}%`;
+  }
+
+  function updateUI() {
+    const slider = document.getElementById('vol-slider');
+    const disp = document.getElementById('vol-display');
+    const muteBtn = document.getElementById('btn-master-mute');
+    const muteInd = document.getElementById('vol-mute-indicator');
+    const connBadge = document.getElementById('audio-connection-badge');
+
+    if (slider && audioState.volume !== null) slider.value = audioState.volume;
+    if (disp && audioState.volume !== null) disp.textContent = `${audioState.volume}%`;
+
+    if (muteBtn) {
+      muteBtn.textContent = audioState.muted ? '🔇' : '🔊';
+      muteBtn.className = audioState.muted
+        ? 'w-10 h-10 rounded-xl bg-red-600/20 text-red-400 border border-red-500/40 text-lg flex items-center justify-center transition'
+        : 'w-10 h-10 rounded-xl bg-slate-800 hover:bg-slate-700 text-lg flex items-center justify-center border border-slate-700 transition';
+    }
+
+    if (muteInd) {
+      if (audioState.muted) {
+        muteInd.classList.remove('hidden');
+      } else {
+        muteInd.classList.add('hidden');
+      }
+    }
+
+    if (connBadge) {
+      connBadge.textContent = audioState.is_local ? 'Mac Mini (Local Darwin)' : 'Mac Mini (SSH 192.168.1.100)';
+    }
+
+    // Radio status
+    const radioSt = audioState.skills['online-radio'];
+    const rBadge = document.getElementById('src-radio-badge');
+    const rInfo = document.getElementById('src-radio-info');
+    if (radioSt && rBadge) {
+      if (radioSt.state === 'playing') {
+        rBadge.className = 'text-[10px] px-2 py-0.5 rounded-full font-mono bg-emerald-500/20 text-emerald-400 border border-emerald-500/30';
+        rBadge.textContent = '● PLAYING';
+        if (rInfo && radioSt.station_name) rInfo.textContent = radioSt.station_name;
+      } else if (radioSt.state === 'paused') {
+        rBadge.className = 'text-[10px] px-2 py-0.5 rounded-full font-mono bg-amber-500/20 text-amber-400 border border-amber-500/30';
+        rBadge.textContent = '⏸ PAUSED';
+      } else {
+        rBadge.className = 'text-[10px] px-2 py-0.5 rounded-full font-mono bg-slate-800 text-slate-400';
+        rBadge.textContent = 'STOPPED';
+      }
+    }
+
+    // YouTube status
+    const ytSt = audioState.skills['run-youtube-music'];
+    const ytBadge = document.getElementById('src-yt-badge');
+    const ytInfo = document.getElementById('src-yt-info');
+    if (ytSt && ytBadge) {
+      if (ytSt.state === 'playing') {
+        ytBadge.className = 'text-[10px] px-2 py-0.5 rounded-full font-mono bg-emerald-500/20 text-emerald-400 border border-emerald-500/30';
+        ytBadge.textContent = '● PLAYING';
+        if (ytInfo && ytSt.title) ytInfo.textContent = ytSt.title;
+      } else if (ytSt.state === 'paused') {
+        ytBadge.className = 'text-[10px] px-2 py-0.5 rounded-full font-mono bg-amber-500/20 text-amber-400 border border-amber-500/30';
+        ytBadge.textContent = '⏸ PAUSED';
+      } else {
+        ytBadge.className = 'text-[10px] px-2 py-0.5 rounded-full font-mono bg-slate-800 text-slate-400';
+        ytBadge.textContent = 'STOPPED';
+      }
+    }
+  }
+
+  // Broadcast event across browser window so active widgets pause/stop immediately
+  function broadcastBrowserAudio(action, target = 'all') {
+    try {
+      window.dispatchEvent(new CustomEvent('agent-audio-control', {
+        detail: { action: action, target: target }
+      }));
+
+      // Directly invoke known functions if mounted
+      if (target === 'all' || target === 'radio') {
+        if (action === 'pause' && typeof window.pauseRadio === 'function') window.pauseRadio();
+        if (action === 'stop' && typeof window.stopRadio === 'function') window.stopRadio();
+        if (action === 'resume' && typeof window.resumeRadio === 'function') window.resumeRadio();
+      }
+      if (target === 'all' || target === 'youtube') {
+        if (action === 'pause' && typeof window.pauseYouTube === 'function') window.pauseYouTube();
+        if (action === 'stop' && typeof window.stopYouTube === 'function') window.stopYouTube();
+        if (action === 'resume' && typeof window.resumeYouTube === 'function') window.resumeYouTube();
+      }
+    } catch (e) {
+      console.error('Error broadcasting audio event:', e);
+    }
+  }
+
+  async function refreshAudioStatus() {
+    logAudio('Querying audio status...');
+    const res = await window.AgentBridge.runSkill('audio-control', 'main.py', ['status']);
+    if (res.ok && res.json) {
+      const mac = res.json.macmini || {};
+      audioState.volume = mac.output_volume;
+      audioState.muted = mac.output_muted;
+      audioState.is_local = mac.is_local;
+      audioState.host = mac.host;
+      audioState.skills = res.json.skills || {};
+      updateUI();
+      logAudio(`Status updated: Mac Mini volume is ${audioState.volume}%, muted=${audioState.muted}`);
+    } else {
+      logAudio(`Status query failed: ${res.output || 'Unknown error'}`);
+    }
+  }
+
+  async function applyVolumeSlider(val) {
+    const level = parseInt(val, 10);
+    logAudio(`Setting master volume to ${level}%...`);
+    const res = await window.AgentBridge.runSkill('audio-control', 'main.py', ['volume', String(level)]);
+    if (res.ok && res.json) {
+      audioState.volume = res.json.output_volume;
+      audioState.muted = res.json.output_muted;
+      updateUI();
+      logAudio(`Master volume set to ${audioState.volume}%`);
+    }
+  }
+
+  async function stepVolume(delta) {
+    const cmd = delta > 0 ? 'up' : 'down';
+    const amount = String(Math.abs(delta));
+    logAudio(`Adjusting volume ${cmd} ${amount}%...`);
+    const res = await window.AgentBridge.runSkill('audio-control', 'main.py', [cmd, amount]);
+    if (res.ok && res.json) {
+      audioState.volume = res.json.output_volume;
+      audioState.muted = res.json.output_muted;
+      updateUI();
+      logAudio(`Master volume is now ${audioState.volume}%`);
+    }
+  }
+
+  async function setExactVolume(level) {
+    await applyVolumeSlider(level);
+  }
+
+  async function toggleMute() {
+    logAudio('Toggling master mute...');
+    const res = await window.AgentBridge.runSkill('audio-control', 'main.py', ['toggle-mute']);
+    if (res.ok && res.json) {
+      audioState.volume = res.json.output_volume;
+      audioState.muted = res.json.output_muted;
+      updateUI();
+      logAudio(`Mute state toggled: muted=${audioState.muted}`);
+    }
+  }
+
+  async function universalPause() {
+    // 1. Immediately pause in browser widgets
+    broadcastBrowserAudio('pause', 'all');
+    logAudio('Universal Pause triggered across all sources');
+
+    // 2. Invoke backend skill to pause external streams & Mac Mini
+    const res = await window.AgentBridge.runSkill('audio-control', 'main.py', ['pause', '--target', 'all']);
+    if (res.ok) {
+      logAudio('Backend audio pause completed');
+      await refreshAudioStatus();
+    }
+  }
+
+  async function universalStop() {
+    // 1. Immediately stop in browser widgets
+    broadcastBrowserAudio('stop', 'all');
+    logAudio('Universal Stop triggered across all sources');
+
+    // 2. Invoke backend skill
+    const res = await window.AgentBridge.runSkill('audio-control', 'main.py', ['stop', '--target', 'all']);
+    if (res.ok) {
+      logAudio('Backend audio stop completed');
+      await refreshAudioStatus();
+    }
+  }
+
+  async function universalResume() {
+    broadcastBrowserAudio('resume', 'all');
+    logAudio('Universal Resume triggered');
+    const res = await window.AgentBridge.runSkill('audio-control', 'main.py', ['resume', '--target', 'all']);
+    if (res.ok) {
+      await refreshAudioStatus();
+    }
+  }
+
+  async function controlSource(target, action) {
+    broadcastBrowserAudio(action, target);
+    logAudio(`Command ${action} sent to ${target}`);
+    const res = await window.AgentBridge.runSkill('audio-control', 'main.py', [action, '--target', target]);
+    if (res.ok) {
+      await refreshAudioStatus();
+    }
+  }
+
+  function navigateToSkill(skillName) {
+    if (window.app && typeof window.app.selectSkill === 'function') {
+      window.app.selectSkill(skillName);
+    }
+  }
+
+  // Initial load
+  refreshAudioStatus();
+</script>
+

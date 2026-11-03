@@ -1,0 +1,138 @@
+<div class="space-y-4">
+  <!-- Status Header Card -->
+  <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+    <div class="p-3.5 rounded-xl bg-slate-950/80 border border-slate-800">
+      <div class="text-[10px] uppercase font-semibold text-slate-400">Host Reachability</div>
+      <div id="mac-status-text" class="text-base font-bold text-slate-300 mt-1 flex items-center gap-1.5">
+        <span id="mac-status-dot" class="w-2.5 h-2.5 rounded-full bg-slate-600"></span>
+        <span>Unknown</span>
+      </div>
+      <div class="text-[10px] text-slate-500 mt-0.5 font-mono">192.168.1.100 (macmini)</div>
+    </div>
+
+    <div class="p-3.5 rounded-xl bg-slate-950/80 border border-slate-800">
+      <div class="text-[10px] uppercase font-semibold text-slate-400">Ping & Latency</div>
+      <div id="mac-ping-val" class="text-base font-bold text-slate-300 mt-1">- ms</div>
+      <div class="text-[10px] text-slate-500 mt-0.5">ICMP single packet probe</div>
+    </div>
+
+    <div class="p-3.5 rounded-xl bg-slate-950/80 border border-slate-800">
+      <div class="text-[10px] uppercase font-semibold text-slate-400">SSH & System Health</div>
+      <div id="mac-ssh-val" class="text-base font-bold text-slate-300 mt-1">-</div>
+      <div id="mac-uptime-val" class="text-[10px] text-slate-500 mt-0.5">Uptime: -</div>
+    </div>
+  </div>
+
+  <!-- Hardware Vitals Card (if online via SSH) -->
+  <div id="mac-vitals-card" class="p-4 rounded-xl bg-slate-950/80 border border-slate-800 space-y-3 hidden">
+    <div class="text-xs font-semibold text-slate-300 flex items-center justify-between">
+      <span>🖥️ Apple M4 Vitals</span>
+      <span class="text-[10px] text-slate-500">Live via SSH telemetry</span>
+    </div>
+    <div class="grid grid-cols-3 gap-3 text-center">
+      <div class="bg-slate-900/60 p-2.5 rounded-lg border border-slate-800/80">
+        <div class="text-[10px] text-slate-400">CPU Load (1m)</div>
+        <div id="mac-cpu-load" class="text-sm font-bold text-indigo-300 mt-0.5">-</div>
+      </div>
+      <div class="bg-slate-900/60 p-2.5 rounded-lg border border-slate-800/80">
+        <div class="text-[10px] text-slate-400">Memory Used</div>
+        <div id="mac-mem-used" class="text-sm font-bold text-indigo-300 mt-0.5">-</div>
+      </div>
+      <div class="bg-slate-900/60 p-2.5 rounded-lg border border-slate-800/80">
+        <div class="text-[10px] text-slate-400">Disk Used</div>
+        <div id="mac-disk-used" class="text-sm font-bold text-indigo-300 mt-0.5">-</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Control Actions -->
+  <div class="flex flex-wrap items-center gap-2 pt-1">
+    <button onclick="checkMacStatus()" id="btn-mac-check" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-xs font-medium transition shadow-sm flex items-center gap-1.5">
+      🔄 Check Status Now
+    </button>
+    <button onclick="wakeMacMini()" id="btn-mac-wake" class="px-3.5 py-2 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 rounded-lg text-xs font-medium transition flex items-center gap-1.5">
+      ⚡ Wake on LAN
+    </button>
+    <button onclick="loadMacHistory()" id="btn-mac-hist" class="px-3.5 py-2 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 rounded-lg text-xs font-medium transition flex items-center gap-1.5">
+      📜 View History
+    </button>
+  </div>
+
+  <!-- Terminal Output / History Box -->
+  <div id="mac-output-box" class="p-3 bg-black/70 rounded-xl border border-slate-900 text-xs font-mono text-slate-300 max-h-56 overflow-y-auto whitespace-pre-wrap hidden"></div>
+</div>
+
+<script>
+async function checkMacStatus() {
+  const btn = document.getElementById('btn-mac-check');
+  const dot = document.getElementById('mac-status-dot');
+  const txt = document.getElementById('mac-status-text');
+  const pingEl = document.getElementById('mac-ping-val');
+  const sshEl = document.getElementById('mac-ssh-val');
+  const upEl = document.getElementById('mac-uptime-val');
+  const vitalsCard = document.getElementById('mac-vitals-card');
+  const outBox = document.getElementById('mac-output-box');
+
+  btn.disabled = true;
+  btn.textContent = 'Checking...';
+  txt.textContent = 'Probing...';
+  dot.className = 'w-2.5 h-2.5 rounded-full bg-amber-500 animate-pulse';
+
+  try {
+    const res = await window.AgentBridge.runSkill('macmini-monitor', 'main.py', ['status']);
+    const j = res.json || {};
+    
+    if (j.status === 'online') {
+      dot.className = 'w-2.5 h-2.5 rounded-full bg-emerald-500';
+      txt.textContent = 'Online & Active';
+      pingEl.textContent = (j.ping_ms || '<1') + ' ms';
+      sshEl.textContent = j.ssh_ok ? 'SSH Responsive' : 'SSH Closed';
+      upEl.textContent = 'Uptime: ' + (j.vitals?.uptime || 'Active');
+
+      if (j.vitals) {
+        vitalsCard.classList.remove('hidden');
+        document.getElementById('mac-cpu-load').textContent = j.vitals.load_1m || '-';
+        document.getElementById('mac-mem-used').textContent = (j.vitals.mem_used_pct || '-') + '%';
+        document.getElementById('mac-disk-used').textContent = (j.vitals.disk_used_pct || '-') + '%';
+      }
+    } else {
+      dot.className = 'w-2.5 h-2.5 rounded-full bg-rose-500';
+      txt.textContent = 'Offline / Sleeping';
+      pingEl.textContent = 'Timeout';
+      sshEl.textContent = 'Unreachable';
+      vitalsCard.classList.add('hidden');
+    }
+
+    outBox.classList.remove('hidden');
+    outBox.textContent = res.output;
+  } catch (err) {
+    dot.className = 'w-2.5 h-2.5 rounded-full bg-rose-500';
+    txt.textContent = 'Error';
+    outBox.classList.remove('hidden');
+    outBox.textContent = 'Failed: ' + err.message;
+  } finally {
+    btn.disabled = false;
+    btn.textContent = '🔄 Check Status Now';
+  }
+}
+
+async function wakeMacMini() {
+  const outBox = document.getElementById('mac-output-box');
+  outBox.classList.remove('hidden');
+  outBox.textContent = 'Sending Wake-on-LAN magic packet to Mac Mini...';
+  const res = await window.AgentBridge.runSkill('macmini-monitor', 'main.py', ['wake']);
+  outBox.textContent = res.output;
+}
+
+async function loadMacHistory() {
+  const outBox = document.getElementById('mac-output-box');
+  outBox.classList.remove('hidden');
+  outBox.textContent = 'Loading check history from SQLite...';
+  const res = await window.AgentBridge.runSkill('macmini-monitor', 'main.py', ['history', '--limit', '10']);
+  outBox.textContent = res.output;
+}
+
+// Initial auto-check when widget loads
+checkMacStatus();
+</script>
+

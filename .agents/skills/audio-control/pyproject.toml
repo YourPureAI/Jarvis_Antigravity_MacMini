@@ -1,0 +1,13 @@
+[project]
+name = "skill-audio-control"
+version = "0.1.0"
+description = "Dependencies for the audio-control skill (isolated venv: envs/audio-control)"
+requires-python = ">=3.11"
+dependencies = []
+
+[tool.uv]
+package = false
+
+[tool.agent]
+# Secret names (see `agent.py secret list`) injected as env vars by `agent.py run`.
+secrets = []

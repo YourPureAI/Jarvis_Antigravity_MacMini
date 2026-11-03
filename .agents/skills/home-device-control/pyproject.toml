@@ -1,0 +1,15 @@
+[project]
+name = "skill-home-device-control"
+version = "0.1.0"
+description = "Dependencies for the home-device-control skill (isolated venv: envs/home-device-control)"
+requires-python = ">=3.11"
+dependencies = [
+    "httpx==0.28.1",
+]
+
+[tool.uv]
+package = false
+
+[tool.agent]
+# Secret names injected as env vars by agent.py run (optional for local ping/ssh)
+secrets = ["HASS_TOKEN", "HASS_URL"]

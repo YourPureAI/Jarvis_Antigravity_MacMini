@@ -1,0 +1,651 @@
+<div class="space-y-4 font-sans text-slate-100">
+  <!-- Top Controller Header -->
+  <div class="p-4 rounded-xl bg-slate-900/90 border border-slate-800 shadow-lg space-y-3">
+    <div class="flex items-center justify-between border-b border-slate-800/80 pb-3">
+      <div class="flex items-center gap-3">
+        <div
+          class="w-9 h-9 rounded-xl bg-emerald-500/20 border border-emerald-500/40 flex items-center justify-center text-emerald-400 font-bold text-base shadow-inner">
+          📻
+        </div>
+        <div>
+          <h2 class="text-sm font-semibold text-slate-100 flex items-center gap-2">
+            Online Radio Player
+            <span id="radio-badge-live"
+              class="hidden text-[10px] bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 px-2 py-0.5 rounded-full font-mono">
+              ● LIVE
+            </span>
+          </h2>
+          <p class="text-[11px] text-slate-400">Stream Czech, New Zealand & global live radio stations</p>
+        </div>
+      </div>
+      <!-- Top Actions -->
+      <div class="flex items-center gap-2">
+        <button onclick="toggleAddModal()"
+          class="px-2.5 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-medium rounded-lg shadow-sm transition flex items-center gap-1">
+          <span>+ Add Station</span>
+        </button>
+        <button onclick="toggleSearchModal()"
+          class="px-2.5 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-medium rounded-lg border border-slate-700 transition flex items-center gap-1">
+          <span>🔍 Discover</span>
+        </button>
+        <button onclick="loadStations()" title="Refresh station list"
+          class="px-2.5 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs rounded-lg border border-slate-700 transition">
+          ↻
+        </button>
+      </div>
+    </div>
+
+    <!-- Now Playing Player Bar -->
+    <div id="radio-player-bar"
+      class="p-3.5 rounded-xl bg-slate-950/80 border border-slate-800 flex flex-col md:flex-row items-center justify-between gap-3">
+      <!-- Station info & Visualizer -->
+      <div class="flex items-center gap-3 min-w-0 flex-1">
+        <!-- Animated Visualizer Bars -->
+        <div class="flex items-end gap-1 h-7 w-6 px-0.5 py-1 bg-slate-900 rounded border border-slate-800 shrink-0">
+          <span id="eq-bar-1" class="w-1 bg-slate-600 rounded-t h-1 transition-all duration-200"></span>
+          <span id="eq-bar-2" class="w-1 bg-slate-600 rounded-t h-1 transition-all duration-200"></span>
+          <span id="eq-bar-3" class="w-1 bg-slate-600 rounded-t h-1 transition-all duration-200"></span>
+        </div>
+        <div class="min-w-0">
+          <div class="flex items-center gap-2">
+            <span id="player-flag" class="text-base">🇨🇿</span>
+            <span id="player-title"
+              class="text-xs font-semibold text-slate-200 truncate max-w-[220px] md:max-w-md">Radio Krokodýl</span>
+            <span id="player-genre"
+              class="text-[10px] bg-slate-800 text-slate-400 border border-slate-700/60 px-1.5 py-0.2 rounded font-mono">Pop
+              & Hits</span>
+          </div>
+          <p id="player-status" class="text-[11px] text-slate-500 font-mono">Ready to play</p>
+        </div>
+      </div>
+
+      <!-- Playback Controls -->
+      <div class="flex items-center gap-3 shrink-0">
+        <!-- Play / Pause Button -->
+        <button id="player-play-btn" onclick="togglePlay()"
+          class="w-9 h-9 rounded-full bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold flex items-center justify-center shadow-md transition">
+          ▶
+        </button>
+
+        <!-- Volume Slider & Mute -->
+        <div class="flex items-center gap-1.5 bg-slate-900 px-2.5 py-1 rounded-lg border border-slate-800">
+          <button id="player-mute-btn" onclick="toggleMute()"
+            class="text-xs text-slate-400 hover:text-slate-200">🔊</button>
+          <input id="player-vol" type="range" min="0" max="100" value="85" oninput="setVolume(this.value)"
+            class="w-16 accent-emerald-500 h-1 bg-slate-800 rounded-lg cursor-pointer" />
+        </div>
+
+        <!-- External link -->
+        <a id="player-ext-link" href="#" target="_blank" title="Open direct stream in external player"
+          class="text-slate-500 hover:text-slate-300 text-xs px-1.5 py-1 rounded hover:bg-slate-800 transition">
+          ↗
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Add New Station Inline Form (collapsible) -->
+  <div id="radio-add-box"
+    class="p-4 bg-slate-900/90 rounded-xl border border-emerald-900/50 space-y-3 hidden shadow-lg">
+    <div class="flex items-center justify-between border-b border-slate-800 pb-2">
+      <div class="text-xs font-semibold text-emerald-400 flex items-center gap-1.5">
+        <span>+ Add New Online Radio Station</span>
+      </div>
+      <button onclick="toggleAddModal()" class="text-slate-500 hover:text-slate-300 text-xs">✕</button>
+    </div>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-2.5">
+      <div>
+        <label class="block text-[10px] text-slate-400 uppercase font-mono mb-1">Station Name *</label>
+        <input id="add-st-name" type="text" placeholder="e.g. Radio Wave, Fajn Radio, George FM"
+          class="w-full bg-slate-950 border border-slate-700/80 rounded-lg px-2.5 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-emerald-500" />
+      </div>
+      <div>
+        <label class="block text-[10px] text-slate-400 uppercase font-mono mb-1">Stream URL (MP3/AAC/HLS) *</label>
+        <input id="add-st-url" type="url" placeholder="http://... or https://...stream.mp3"
+          class="w-full bg-slate-950 border border-slate-700/80 rounded-lg px-2.5 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-emerald-500 font-mono text-[11px]" />
+      </div>
+      <div>
+        <label class="block text-[10px] text-slate-400 uppercase font-mono mb-1">Country</label>
+        <select id="add-st-country"
+          class="w-full bg-slate-950 border border-slate-700/80 rounded-lg px-2.5 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-emerald-500">
+          <option value="CZ">🇨🇿 Czech Republic (CZ)</option>
+          <option value="NZ">🇳🇿 New Zealand (NZ)</option>
+          <option value="GLOBAL">🌐 International / Other</option>
+        </select>
+      </div>
+      <div>
+        <label class="block text-[10px] text-slate-400 uppercase font-mono mb-1">Genre / Tag</label>
+        <input id="add-st-genre" type="text" placeholder="e.g. Rock, Pop, News, Dance, Jazz"
+          class="w-full bg-slate-950 border border-slate-700/80 rounded-lg px-2.5 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-emerald-500" />
+      </div>
+    </div>
+    <div>
+      <label class="block text-[10px] text-slate-400 uppercase font-mono mb-1">Description (optional)</label>
+      <input id="add-st-desc" type="text" placeholder="Short description or city"
+        class="w-full bg-slate-950 border border-slate-700/80 rounded-lg px-2.5 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-emerald-500" />
+    </div>
+    <div class="flex justify-end gap-2 pt-1 border-t border-slate-800/80">
+      <button onclick="toggleAddModal()"
+        class="px-3 py-1.5 bg-slate-800 text-slate-300 text-xs rounded-lg hover:bg-slate-700">Cancel</button>
+      <button onclick="submitNewStation()"
+        class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-medium rounded-lg shadow-sm">Save
+        Station</button>
+    </div>
+  </div>
+
+  <!-- Search Online Directory Modal (collapsible) -->
+  <div id="radio-search-box"
+    class="p-4 bg-slate-900/90 rounded-xl border border-indigo-900/50 space-y-3 hidden shadow-lg">
+    <div class="flex items-center justify-between border-b border-slate-800 pb-2">
+      <div class="text-xs font-semibold text-indigo-400 flex items-center gap-1.5">
+        <span>🔍 Search Worldwide Stations Directory</span>
+      </div>
+      <button onclick="toggleSearchModal()" class="text-slate-500 hover:text-slate-300 text-xs">✕</button>
+    </div>
+    <div class="flex gap-2">
+      <input id="search-dir-input" type="text"
+        placeholder="Search by name, city or genre (e.g. Prague, Auckland, Rock, Chill)..."
+        onkeydown="if(event.key === 'Enter') runDirectorySearch()"
+        class="flex-1 bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-indigo-500" />
+      <button onclick="runDirectorySearch()"
+        class="px-3.5 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-medium rounded-lg shadow-sm transition">
+        Search
+      </button>
+    </div>
+    <div id="search-results-list" class="space-y-1.5 max-h-56 overflow-y-auto text-xs text-slate-400">
+      <div class="text-center py-4 text-slate-500">Type a keyword and press Search to discover online streams.</div>
+    </div>
+  </div>
+
+  <!-- Main Station List Card -->
+  <div class="p-4 rounded-xl bg-slate-900/90 border border-slate-800 space-y-3.5">
+    <!-- Filter Tabs & Quick Search -->
+    <div class="flex flex-col sm:flex-row items-center justify-between gap-2.5 border-b border-slate-800/80 pb-3">
+      <!-- Tabs -->
+      <div class="flex items-center gap-1.5 bg-slate-950 p-1 rounded-lg border border-slate-800 text-xs">
+        <button id="tab-all" onclick="setFilter('ALL')"
+          class="px-2.5 py-1 rounded-md text-[11px] font-medium bg-emerald-600 text-white shadow-sm transition">
+          All
+        </button>
+        <button id="tab-cz" onclick="setFilter('CZ')"
+          class="px-2.5 py-1 rounded-md text-[11px] font-medium text-slate-400 hover:text-slate-200 transition">
+          🇨🇿 Czech
+        </button>
+        <button id="tab-nz" onclick="setFilter('NZ')"
+          class="px-2.5 py-1 rounded-md text-[11px] font-medium text-slate-400 hover:text-slate-200 transition">
+          🇳🇿 New Zealand
+        </button>
+        <button id="tab-custom" onclick="setFilter('CUSTOM')"
+          class="px-2.5 py-1 rounded-md text-[11px] font-medium text-slate-400 hover:text-slate-200 transition">
+          ⭐ Custom
+        </button>
+      </div>
+
+      <!-- Search in current list -->
+      <div class="w-full sm:w-48">
+        <input id="station-filter-input" type="text" placeholder="Filter list..." oninput="renderStations()"
+          class="w-full bg-slate-950 border border-slate-800 rounded-lg px-2.5 py-1 text-xs text-slate-200 focus:outline-none focus:border-slate-600" />
+      </div>
+    </div>
+
+    <!-- Stations Grid -->
+    <div id="stations-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2.5">
+      <div class="text-xs text-slate-500 col-span-full py-8 text-center">Loading radio stations...</div>
+    </div>
+  </div>
+
+  <!-- Hidden HTML5 Audio Element -->
+  <audio id="radio-audio" preload="none"></audio>
+
+  <!-- Output Log (Debug / Feedback) -->
+  <div id="radio-output-box"
+    class="p-3 bg-black/80 rounded-xl border border-slate-800 text-[11px] font-mono text-slate-400 max-h-32 overflow-y-auto whitespace-pre-wrap hidden">
+  </div>
+</div>
+
+<script>
+  // State
+  var allStations = window._radioStations || [];
+  var currentFilter = 'ALL';
+  var activeStation = window._radioActiveStation || null;
+  var isAudioPlaying = false;
+  var audioEl = document.getElementById('radio-audio');
+
+  // Setup Audio Event Listeners
+  audioEl.addEventListener('playing', () => {
+    isAudioPlaying = true;
+    updatePlayerUI();
+    logMsg(`Playing: ${activeStation ? activeStation.name : 'Stream'}`);
+  });
+
+  audioEl.addEventListener('pause', () => {
+    isAudioPlaying = false;
+    updatePlayerUI();
+  });
+
+  audioEl.addEventListener('waiting', () => {
+    document.getElementById('player-status').textContent = 'Buffering live stream...';
+  });
+
+  audioEl.addEventListener('error', (e) => {
+    isAudioPlaying = false;
+    updatePlayerUI();
+    document.getElementById('player-status').textContent = 'Stream error or offline';
+    logMsg(`Error connecting to stream: ${audioEl.src}`);
+  });
+
+  function logMsg(msg) {
+    const box = document.getElementById('radio-output-box');
+    box.classList.remove('hidden');
+    box.textContent = `[${new Date().toLocaleTimeString()}] ${msg}\n` + box.textContent;
+  }
+
+  function getFlag(country) {
+    if (!country) return '🌐';
+    const c = country.toUpperCase();
+    if (c === 'CZ') return '🇨🇿';
+    if (c === 'NZ') return '🇳🇿';
+    if (c === 'US') return '🇺🇸';
+    if (c === 'UK' || c === 'GB') return '🇬🇧';
+    if (c === 'DE') return '🇩🇪';
+    if (c === 'AU') return '🇦🇺';
+    return '🌐';
+  }
+
+  function setFilter(filter) {
+    currentFilter = filter;
+    const tabs = ['all', 'cz', 'nz', 'custom'];
+    tabs.forEach(t => {
+      const btn = document.getElementById(`tab-${t}`);
+      if (t.toUpperCase() === filter) {
+        btn.className = 'px-2.5 py-1 rounded-md text-[11px] font-medium bg-emerald-600 text-white shadow-sm transition';
+      } else {
+        btn.className = 'px-2.5 py-1 rounded-md text-[11px] font-medium text-slate-400 hover:text-slate-200 transition';
+      }
+    });
+    renderStations();
+  }
+
+  async function loadStations() {
+    const grid = document.getElementById('stations-grid');
+    grid.innerHTML = `<div class="text-xs text-slate-500 col-span-full py-8 text-center">Loading stations...</div>`;
+
+    const res = await window.AgentBridge.runSkill('online-radio', 'main.py', ['list']);
+    if (!res.ok || !res.json || !res.json.ok) {
+      grid.innerHTML = `<div class="text-xs text-red-400 col-span-full py-8 text-center">Failed to load stations: ${res.output || 'Unknown error'}</div>`;
+      return;
+    }
+
+    allStations = res.json.stations || [];
+    renderStations();
+
+    // Check if an auto-play station was requested from chat or navigation
+    const autoPlayQuery = window._agentAutoPlayStation;
+    if (autoPlayQuery) {
+      window._agentAutoPlayStation = null;
+      const q = String(autoPlayQuery).toLowerCase().trim();
+      const matched = allStations.find(s =>
+        s.name.toLowerCase().includes(q) ||
+        q.includes(s.name.toLowerCase()) ||
+        (q.includes('krokod') && s.name.toLowerCase().includes('krokod')) ||
+        (q.includes('beat') && s.name.toLowerCase().includes('beat')) ||
+        (q.includes('rozhlas') && s.name.toLowerCase().includes('rozhlas')) ||
+        (q.includes('radiožurnál') && s.name.toLowerCase().includes('radiožurnál')) ||
+        (q.includes('radio1') && s.name.toLowerCase().includes('radio 1'))
+      ) || allStations[0];
+
+      if (matched) {
+        logMsg(`Auto-playing station from chat: ${matched.name}`);
+        setStation(matched, true);
+        return;
+      }
+    }
+
+    // If no station is active yet, default to first station (e.g. Radio Krokodýl)
+    if (!activeStation && allStations.length > 0) {
+      // Prefer Radio Krokodýl if available
+      const krok = allStations.find(s => s.name.includes('Krokodýl')) || allStations[0];
+      setStation(krok, false);
+    }
+  }
+
+  // Global hook for direct playback triggers
+  window.playRadioStation = function (stationName) {
+    const q = String(stationName || '').toLowerCase().trim();
+    const matched = allStations.find(s =>
+      s.name.toLowerCase().includes(q) ||
+      q.includes(s.name.toLowerCase()) ||
+      (q.includes('krokod') && s.name.toLowerCase().includes('krokod')) ||
+      (q.includes('beat') && s.name.toLowerCase().includes('beat')) ||
+      (q.includes('rozhlas') && s.name.toLowerCase().includes('rozhlas')) ||
+      (q.includes('žurnál') && s.name.toLowerCase().includes('žurnál')) ||
+      (q.includes('zurnal') && s.name.toLowerCase().includes('žurnál')) ||
+      (q.includes('radio 1') && s.name.toLowerCase().includes('radio 1')) ||
+      (q.includes('radio1') && s.name.toLowerCase().includes('radio 1')) ||
+      (q.includes('george') && s.name.toLowerCase().includes('george')) ||
+      (q.includes('rnz') && s.name.toLowerCase().includes('rnz')) ||
+      (q.includes('95bfm') && s.name.toLowerCase().includes('95bfm'))
+    ) || allStations[0];
+
+    if (matched) {
+      logMsg(`Playing station: ${matched.name}`);
+      setStation(matched, true);
+    }
+  };
+
+  // Universal Audio Control Hooks & Listeners
+  window.pauseRadio = function () {
+    if (audioEl && isAudioPlaying) {
+      audioEl.pause();
+      logMsg('Radio paused via audio controller');
+    }
+  };
+
+  window.stopRadio = function () {
+    if (audioEl) {
+      audioEl.pause();
+      audioEl.removeAttribute('src');
+      audioEl.load();
+      isAudioPlaying = false;
+      updatePlayerUI();
+      document.getElementById('player-status').textContent = 'Stopped';
+      logMsg('Radio stopped via audio controller');
+    }
+  };
+
+  window.resumeRadio = function () {
+    if (audioEl && activeStation) {
+      if (!audioEl.src || audioEl.src === window.location.href) {
+        audioEl.src = activeStation.url;
+      }
+      audioEl.play().catch(e => console.error(e));
+      logMsg('Radio resumed');
+    }
+  };
+
+  // Universal event listener for audio controller events
+  window.addEventListener('agent-audio-control', function (e) {
+    const d = e.detail || {};
+    if (!d.target || d.target === 'all' || d.target === 'radio' || d.target === 'online-radio') {
+      if (d.action === 'pause') window.pauseRadio();
+      else if (d.action === 'stop') window.stopRadio();
+      else if (d.action === 'play' || d.action === 'resume') window.resumeRadio();
+    }
+  });
+
+  function renderStations() {
+    const grid = document.getElementById('stations-grid');
+    const query = document.getElementById('station-filter-input').value.toLowerCase().trim();
+
+    let filtered = allStations;
+    if (currentFilter === 'CZ') {
+      filtered = filtered.filter(s => s.country === 'CZ');
+    } else if (currentFilter === 'NZ') {
+      filtered = filtered.filter(s => s.country === 'NZ');
+    } else if (currentFilter === 'CUSTOM') {
+      filtered = filtered.filter(s => s.is_default === 0);
+    }
+
+    if (query) {
+      filtered = filtered.filter(s =>
+        s.name.toLowerCase().includes(query) ||
+        (s.genre && s.genre.toLowerCase().includes(query)) ||
+        (s.description && s.description.toLowerCase().includes(query))
+      );
+    }
+
+    if (filtered.length === 0) {
+      grid.innerHTML = `
+      <div class="col-span-full p-6 rounded-lg bg-slate-950/60 border border-slate-800 text-center space-y-2">
+        <p class="text-xs text-slate-400">No radio stations match your filter.</p>
+        <button onclick="toggleAddModal()" class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white text-xs rounded-lg transition">
+          + Add New Station
+        </button>
+      </div>`;
+      return;
+    }
+
+    grid.innerHTML = filtered.map(st => {
+      const isThisActive = activeStation && activeStation.id === st.id;
+      const isPlayingThis = isThisActive && isAudioPlaying;
+      const flag = getFlag(st.country);
+
+      return `
+      <div class="p-3 rounded-xl bg-slate-950/70 border ${isThisActive ? 'border-emerald-500/70 shadow-emerald-950/20 shadow-md' : 'border-slate-800/80 hover:border-slate-700/80'} transition flex flex-col justify-between space-y-2.5">
+        <div class="flex items-start justify-between gap-2">
+          <div class="min-w-0">
+            <div class="flex items-center gap-1.5">
+              <span class="text-sm">${flag}</span>
+              <span class="text-xs font-semibold text-slate-200 truncate ${isThisActive ? 'text-emerald-300' : ''}">${st.name}</span>
+            </div>
+            <div class="text-[10px] text-slate-400 truncate mt-0.5">${st.genre || 'Radio'}</div>
+            ${st.description ? `<div class="text-[10px] text-slate-500 line-clamp-1 mt-0.5">${st.description}</div>` : ''}
+          </div>
+          <!-- Delete button for user custom stations -->
+          ${st.is_default === 0 ? `
+            <button onclick="deleteStation(${st.id}, '${st.name.replace(/'/g, "\\'")}')" title="Delete custom station" class="text-slate-500 hover:text-red-400 text-xs px-1 transition">
+              ✕
+            </button>
+          ` : ''}
+        </div>
+
+        <div class="flex items-center justify-between border-t border-slate-900 pt-2">
+          <span class="text-[10px] font-mono text-slate-500 uppercase">${st.country}</span>
+          <button onclick="playStationDirect(${st.id})" class="px-3 py-1 ${isPlayingThis ? 'bg-amber-500 hover:bg-amber-400 text-slate-950' : 'bg-emerald-600 hover:bg-emerald-500 text-white'} text-[11px] font-medium rounded-lg shadow-sm transition flex items-center gap-1">
+            <span>${isPlayingThis ? '⏸ Pause' : '▶ Play'}</span>
+          </button>
+        </div>
+      </div>
+    `;
+    }).join('');
+  }
+
+  function setStation(station, autoPlay = true) {
+    activeStation = station;
+    document.getElementById('player-flag').textContent = getFlag(station.country);
+    document.getElementById('player-title').textContent = station.name;
+    document.getElementById('player-genre').textContent = station.genre || 'Radio';
+    document.getElementById('player-ext-link').href = station.url;
+
+    audioEl.src = station.url;
+    if (autoPlay) {
+      document.getElementById('player-status').textContent = 'Connecting to stream...';
+      audioEl.play().catch(e => {
+        document.getElementById('player-status').textContent = 'Click ▶ Play to listen';
+        logMsg(`Autoplay blocked: ${e.message}`);
+      });
+    } else {
+      document.getElementById('player-status').textContent = 'Ready to play';
+    }
+    updatePlayerUI();
+    renderStations();
+  }
+
+  function playStationDirect(stationId) {
+    const st = allStations.find(s => s.id === stationId);
+    if (!st) return;
+
+    if (activeStation && activeStation.id === st.id) {
+      togglePlay();
+    } else {
+      setStation(st, true);
+    }
+  }
+
+  function togglePlay() {
+    if (!activeStation) {
+      if (allStations.length > 0) setStation(allStations[0], true);
+      return;
+    }
+
+    if (audioEl.paused) {
+      document.getElementById('player-status').textContent = 'Connecting to stream...';
+      audioEl.play().catch(e => {
+        document.getElementById('player-status').textContent = 'Failed to connect';
+        logMsg(`Playback error: ${e.message}`);
+      });
+    } else {
+      audioEl.pause();
+      document.getElementById('player-status').textContent = 'Paused';
+    }
+    updatePlayerUI();
+  }
+
+  function updatePlayerUI() {
+    const playBtn = document.getElementById('player-play-btn');
+    const liveBadge = document.getElementById('radio-badge-live');
+    const b1 = document.getElementById('eq-bar-1');
+    const b2 = document.getElementById('eq-bar-2');
+    const b3 = document.getElementById('eq-bar-3');
+
+    if (isAudioPlaying) {
+      playBtn.textContent = '⏸';
+      playBtn.className = 'w-9 h-9 rounded-full bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold flex items-center justify-center shadow-md transition';
+      liveBadge.classList.remove('hidden');
+      document.getElementById('player-status').textContent = 'Streaming Live';
+      b1.className = 'w-1 bg-emerald-400 rounded-t h-4 transition-all duration-200 animate-pulse';
+      b2.className = 'w-1 bg-emerald-400 rounded-t h-6 transition-all duration-300 animate-pulse';
+      b3.className = 'w-1 bg-emerald-400 rounded-t h-3 transition-all duration-150 animate-pulse';
+    } else {
+      playBtn.textContent = '▶';
+      playBtn.className = 'w-9 h-9 rounded-full bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold flex items-center justify-center shadow-md transition';
+      liveBadge.classList.add('hidden');
+      b1.className = 'w-1 bg-slate-600 rounded-t h-1 transition-all duration-200';
+      b2.className = 'w-1 bg-slate-600 rounded-t h-1 transition-all duration-200';
+      b3.className = 'w-1 bg-slate-600 rounded-t h-1 transition-all duration-200';
+    }
+    renderStations();
+  }
+
+  function setVolume(val) {
+    audioEl.volume = val / 100;
+    const muteBtn = document.getElementById('player-mute-btn');
+    if (val == 0) muteBtn.textContent = '🔇';
+    else if (val < 50) muteBtn.textContent = '🔉';
+    else muteBtn.textContent = '🔊';
+  }
+
+  function toggleMute() {
+    audioEl.muted = !audioEl.muted;
+    const muteBtn = document.getElementById('player-mute-btn');
+    muteBtn.textContent = audioEl.muted ? '🔇' : '🔊';
+  }
+
+  function toggleAddModal() {
+    const box = document.getElementById('radio-add-box');
+    box.classList.toggle('hidden');
+  }
+
+  function toggleSearchModal() {
+    const box = document.getElementById('radio-search-box');
+    box.classList.toggle('hidden');
+  }
+
+  async function submitNewStation() {
+    const name = document.getElementById('add-st-name').value.trim();
+    const url = document.getElementById('add-st-url').value.trim();
+    const country = document.getElementById('add-st-country').value;
+    const genre = document.getElementById('add-st-genre').value.trim() || 'General';
+    const desc = document.getElementById('add-st-desc').value.trim();
+
+    if (!name || !url) {
+      alert('Please enter station name and stream URL.');
+      return;
+    }
+
+    logMsg(`Adding new station: "${name}" (${country})...`);
+    const res = await window.AgentBridge.runSkill('online-radio', 'main.py', [
+      'add',
+      '--name', name,
+      '--url', url,
+      '--country', country,
+      '--genre', genre,
+      '--desc', desc
+    ]);
+
+    if (res.ok && res.json && res.json.ok) {
+      document.getElementById('add-st-name').value = '';
+      document.getElementById('add-st-url').value = '';
+      document.getElementById('add-st-genre').value = '';
+      document.getElementById('add-st-desc').value = '';
+      toggleAddModal();
+      logMsg(`Station "${name}" saved!`);
+      await loadStations();
+      // Auto-select and play newly added station
+      if (res.json.station) {
+        setStation(res.json.station, true);
+      }
+    } else {
+      logMsg(`Failed to add station: ${res.output || 'Error'}`);
+    }
+  }
+
+  async function deleteStation(stationId, name) {
+    if (!confirm(`Delete station "${name}"?`)) return;
+
+    logMsg(`Removing station "${name}"...`);
+    const res = await window.AgentBridge.runSkill('online-radio', 'main.py', ['remove', '--id', String(stationId)]);
+    if (res.ok) {
+      logMsg(`Station "${name}" removed.`);
+      loadStations();
+    }
+  }
+
+  async function runDirectorySearch() {
+    const query = document.getElementById('search-dir-input').value.trim();
+    const listEl = document.getElementById('search-results-list');
+    if (!query) return;
+
+    listEl.innerHTML = `<div class="text-center py-4 text-slate-500">Searching directory for "${query}"...</div>`;
+
+    const res = await window.AgentBridge.runSkill('online-radio', 'main.py', ['search', query, '--limit', '10']);
+    if (!res.ok || !res.json || !res.json.ok) {
+      listEl.innerHTML = `<div class="text-center py-4 text-red-400">Search failed or external service unreachable.</div>`;
+      return;
+    }
+
+    const results = res.json.results || [];
+    if (results.length === 0) {
+      listEl.innerHTML = `<div class="text-center py-4 text-slate-500">No stations found matching "${query}".</div>`;
+      return;
+    }
+
+    listEl.innerHTML = results.map(r => `
+    <div class="flex items-center justify-between p-2 rounded-lg bg-slate-950 border border-slate-800 hover:border-slate-700">
+      <div class="min-w-0 pr-2">
+        <div class="flex items-center gap-1.5">
+          <span>${getFlag(r.country)}</span>
+          <span class="font-semibold text-slate-200 truncate max-w-[200px]">${r.name}</span>
+          <span class="text-[10px] text-slate-500 font-mono">${r.codec}</span>
+        </div>
+        <div class="text-[10px] text-slate-400 truncate">${r.genre}</div>
+      </div>
+      <button onclick="addFromDirectory('${r.name.replace(/'/g, "\\'")}', '${r.url.replace(/'/g, "\\'")}', '${r.country}', '${r.genre.replace(/'/g, "\\'")}')" class="px-2.5 py-1 bg-indigo-600 hover:bg-indigo-500 text-white text-[11px] font-medium rounded shadow-sm whitespace-nowrap transition">
+        + Add & Play
+      </button>
+    </div>
+  `).join('');
+  }
+
+  async function addFromDirectory(name, url, country, genre) {
+    logMsg(`Adding station from directory: "${name}"...`);
+    const res = await window.AgentBridge.runSkill('online-radio', 'main.py', [
+      'add',
+      '--name', name,
+      '--url', url,
+      '--country', country,
+      '--genre', genre
+    ]);
+    if (res.ok && res.json && res.json.ok) {
+      toggleSearchModal();
+      logMsg(`Station "${name}" added!`);
+      await loadStations();
+      if (res.json.station) {
+        setStation(res.json.station, true);
+      }
+    }
+  }
+
+  // Initial initialization
+  loadStations();
+</script>

@@ -1,0 +1,16 @@
+[project]
+name = "skill-web-researcher"
+version = "0.1.0"
+description = "Dependencies for the web-researcher skill (isolated venv: envs/web-researcher)"
+requires-python = ">=3.11"
+dependencies = [
+    "beautifulsoup4==4.12.3",
+    "httpx==0.28.1",
+]
+
+[tool.uv]
+package = false
+
+[tool.agent]
+# Secret names (see `agent.py secret list`) injected as env vars by `agent.py run`.
+secrets = []

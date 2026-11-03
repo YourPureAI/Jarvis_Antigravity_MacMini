@@ -1,0 +1,23 @@
+{
+  "agent-guard": {
+    "PreToolUse": [
+      {
+        "matcher": "run_command",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python agent.py hook pre-tool",
+            "timeout": 15
+          }
+        ]
+      }
+    ],
+    "SessionStart": [
+      {
+        "type": "command",
+        "command": "python agent.py hook session-start",
+        "timeout": 15
+      }
+    ]
+  }
+}
