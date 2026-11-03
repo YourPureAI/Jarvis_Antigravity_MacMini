@@ -6,26 +6,59 @@
 [![Privacy](https://img.shields.io/badge/Privacy-100%25%20Local%20%26%20Offline-success.svg)](#-100-local--private-on-apple-mac-mini-16-gb-ram)
 
 > **A minimal, frugal, autonomous personal AI agent living natively inside Google Antigravity & Apple Silicon.**  
-> Combines Home Assistant smart home control, Hermes-style self-extending modular skills, Grok-style real-time web research, Dots long-term memory, on-device voice conversation, and a stunning dark-mode Web Dashboard with interactive widgets.
+> Combines natural voice conversation, automatic skill widget launching, Home Assistant smart home control, Hermes-style self-extending modular skills, Grok-style real-time web research, Dots persistent long-term memory, and a stunning dark-mode Web Dashboard.
 
 ---
 
 ## 📸 Interactive Web Dashboard
 
-Experience the complete unified command center with live interactive widgets, LLM chat with autonomous tool calling, background automation monitoring, memory explorer, and audio streaming:
+Experience the complete unified command center with live interactive widgets, voice & LLM chat with autonomous tool calling, background automation monitoring, memory explorer, and audio streaming:
 
 ![Jarvis Antigravity Dashboard](Agent_screenshot.png)
 
 ---
 
+## 🎙️ Voice-First Interaction + Automatic Widget Activation
+
+Talk to Jarvis as naturally as a human. The assistant doesn't just reply with voice — **it dynamically brings your screen to life**:
+
+* 🗣️ **Speak to Jarvis**: Ask naturally in English or Czech:
+  * *"Play online radio from New Zealand"*
+  * *"What is the current Bitcoin price in CZK and USD?"*
+  * *"Play some Queen on YouTube Music"*
+  * *"How is my Mac Mini running right now?"*
+* ⚡ **Auto-Opening Skill Widgets**: As soon as a skill is executed via voice or chat, **the dashboard automatically switches to and opens that skill's custom interactive widget**. You instantly see live playback controls, real-time telemetry gauges, audio visualizers, or price charts corresponding directly to what you just said!
+* 🛑 **Instant Hardware Cut-Off & Barge-in**: Equipped with a 4-second silence detector, live streaming transcript preview, and acoustic echo cancellation. You can interrupt the agent at any moment using your microphone hardware button.
+
+---
+
 ## 🍏 100% Local & Private on Apple Mac Mini (16 GB RAM)
 
-Turn an everyday **Apple Mac Mini (M1 / M2 / M3 / M4 with 16 GB Unified Memory)** into a 24/7 personal Jarvis workstation — with **zero cloud subscriptions, zero token bills, and complete data privacy**:
+Turn an everyday **Apple Mac Mini (M1 / M2 / M3 / M4 with 16 GB Unified Memory)** into a 24/7 private Jarvis workstation — with **zero cloud subscriptions, zero token bills, and complete data privacy**:
 
-* 🧠 **Local LLM Intelligence**: Connects to local quantized models (e.g., `nvidia-nemotron-3.5-bolt-e4b-mlx`, `Qwen 2.5`, or `Llama 3.2`) served via LM Studio or MLX on your local network. Your queries, transcripts, and private files never leave your home network.
-* 🎙️ **On-Device Speech-to-Text (STT)**: Powered by `mlx-whisper` (`whisper-large-v3-turbo`) utilizing the Apple Silicon Neural Engine & GPU. Transcribes voice in real-time with blistering speed and high accuracy.
-* 🔊 **Native Neural Text-to-Speech (TTS)**: Direct macOS speech synthesis utilizing high-quality neural voices (such as `Zuzana (Premium)` for Czech or `Samantha / Ava / Zoe` for English). Includes acoustic echo rejection and hardware mic button cut-off.
-* ⚡ **Extreme Token Efficiency**: High-frequency scheduled automations run as deterministic Python scripts (`0 LLM tokens`). The agent only engages the LLM when creative reasoning or synthesis is strictly required.
+* 🧠 **Local Neural Intelligence**: Connects to local quantized LLMs (e.g., `nvidia-nemotron-3.5-bolt-e4b-mlx`, `Qwen 2.5`, or `Llama 3.2`) served via LM Studio or MLX directly on Apple Silicon. Your conversations, transcripts, and private files never leave your local network.
+* 🎙️ **On-Device Speech-to-Text (STT)**: Powered by `mlx-whisper` (`whisper-large-v3-turbo`) utilizing the Apple Silicon Neural Engine & GPU. Transcribes voice in real-time with near-zero latency and high accuracy.
+* 🔊 **Native Neural Text-to-Speech (TTS)**: Direct macOS speech synthesis utilizing high-quality neural voices (such as `Zuzana (Premium)` for Czech or `Samantha / Ava / Zoe` for English).
+* ⚡ **Extreme Token Efficiency**: High-frequency scheduled automations run as deterministic Python scripts (**0 LLM tokens**). The agent only engages the LLM when creative reasoning, synthesis, or conversation is strictly needed.
+
+---
+
+## 🛠️ Self-Extending Skills via Google Antigravity
+
+Because this agent lives natively inside **Google Antigravity**, you can expand its capabilities effortlessly through natural conversation with the Antigravity agentic assistant:
+
+### Create New Skills in Seconds:
+Simply prompt Antigravity in chat:
+> *"Create a new skill for tracking live stock prices with an interactive chart widget"*
+
+Antigravity autonomously:
+1. 📂 Scaffolds the skill structure in `.agents/skills/<name>/` via the built-in `skill-creator`.
+2. 🐍 Writes deterministic Python execution scripts and declares dependencies in `pyproject.toml`.
+3. 📦 Creates an isolated virtual environment (`envs/<name>/`) managed via `uv` so dependencies never conflict.
+4. 🎨 Authors a responsive, modern HTML/Tailwind **`widget.html`** that immediately mounts into the Web Dashboard.
+5. 🧪 Generates automated unit tests and lints the code against safety rules.
+
+Once created, the new skill is immediately callable via **voice commands, agent chat, or scheduled cron automations**, and its interactive widget displays automatically!
 
 ---
 
@@ -54,8 +87,8 @@ When chatting with the assistant, it autonomously triggers skills as callable to
 * *"Check if my Mac Mini is online and report vitals"* ➔ Calls `check_macmini` tool live.
 * *"What is stored in my long-term memory about my car?"* ➔ Calls `search_memory` tool live.
 * *"Send a desktop notification saying hello"* ➔ Calls `send_notification` tool.
-* *"Play some Queen on YouTube Music"* ➔ Calls `execute_skill` with `run-youtube-music`.
-* *"Stream 95bFM Auckland radio"* ➔ Calls `execute_skill` with `online-radio`.
+* *"Play some Queen on YouTube Music"* ➔ Calls `execute_skill` with `run-youtube-music` (widget opens automatically!).
+* *"Stream 95bFM Auckland radio"* ➔ Calls `execute_skill` with `online-radio` (radio player opens automatically!).
 
 ---
 
@@ -87,15 +120,6 @@ Every skill lives under `.agents/skills/<name>/` with its own isolated virtual e
 | **`crypto-tracker`** | Real-time crypto price checks in USD & CZK with persistent tracked coins | `widget.html` |
 | **`web-researcher`** | Clean article readability scraper, FTS5 searchable research notes | `widget.html` |
 | **`skill-creator`** | Autonomous meta-skill to scaffold and register new skills & widgets | `widget.html` |
-
-### Creating a New Skill with a Widget:
-Ask the agent in Antigravity chat:
-> *"Create a new skill for tracking Bitcoin price with an interactive widget"*
-
-Or via CLI:
-```powershell
-python runtime/agent.py run skill-creator main.py -- create my-skill --description "My skill description" --widget
-```
 
 ---
 
