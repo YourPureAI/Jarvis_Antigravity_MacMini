@@ -6,7 +6,7 @@
 [![Privacy](https://img.shields.io/badge/Privacy-100%25%20Local%20%26%20Offline-success.svg)](#-100-local--private-on-apple-mac-mini-16-gb-ram)
 
 > **A minimal, frugal, autonomous personal AI agent living natively inside Google Antigravity & Apple Silicon.**  
-> Combines natural voice conversation, automatic skill widget launching, Home Assistant smart home control, Hermes-style self-extending modular skills, Grok-style real-time web research, Dots persistent long-term memory, and a stunning dark-mode Web Dashboard.
+> Combines natural voice conversation, automatic skill widget launching and a dark-mode Web Dashboard.
 
 ---
 
